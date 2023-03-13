@@ -42,7 +42,7 @@ class CAHandler(BaseHTTPRequestHandler):
 '''.encode()
 
     def do_GET(self):
-        if self.path == "/favicon.ico":
+        if self.path == "/xvia-favicon.ico":
             self.send_response(410, "Gone")
             return
 

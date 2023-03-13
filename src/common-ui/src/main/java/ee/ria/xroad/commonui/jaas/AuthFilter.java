@@ -66,7 +66,7 @@ public class AuthFilter implements Filter {
                 // Skip authentication for CSS and other UI-related elements.
                 && !httpRequest.getRequestURI().startsWith(ctx + "/stylesheets/")
                 && !httpRequest.getRequestURI().equals(ctx + "/application/skin")
-                && !httpRequest.getRequestURI().equals(ctx + "/favicon.ico")
+                && !httpRequest.getRequestURI().equals(ctx + "/xvia-favicon.ico")
                 // Finally check authentication.
                 && httpRequest.getUserPrincipal() == null
                 && !httpRequest.authenticate(httpResponse)) {
