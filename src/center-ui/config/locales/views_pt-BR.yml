@@ -1,0 +1,377 @@
+pt-BR:
+  common:
+    name: "Nome"
+    code: "Código"
+    class: "Classe"
+    subsystem: "Subsistema"
+    auth_cert_hash: "Hash"
+    filename_empty: "Nome do arquivo ausente"
+    cert: "Certificado"
+    cert_unreadable: "O certificado do arquivo '%{filename}' não pode ser lido"
+    cert_view: "Ver certificado"
+    subject_dn: "Subject Distinguished Name"
+    issuer_dn: "Issuer Distinguished Name"
+    upload: "Upload"
+    valid_from: "Válido a partir de"
+    valid_to: "Válido até"
+
+  about:
+    index:
+      name: "Servidor Central"
+      version: "Versão"
+
+  feedback:
+    index:
+      instruction_text_html: "Sugestões de melhoria no X-Road ou erros podem ser submetidos para o %{service_desk_link}. %{sign_up_link} para criar uma conta e ter acesso ao %{service_desk_link_0} e %{backlog_link}."
+      service_desk: "Suporte ao X-Road"
+      sign_up: "Registrar"
+      backlog: "X-Road Backlog"
+
+  licence_info:
+    index:
+      info_text_html: "X-Via é uma customização proprietária baseada no X-Road %{licence_info_link}."
+      link_label: "Mais informações"
+
+  init:
+    index:
+      heading: "Configuração inicial"
+      central_server_identification: "Dados deste Servidor Central"
+      instance_identifier: "ID da Rede X-Via"
+      instance_identifier_help: "Código identificador único, identifica exclusivamente uma instância de rede do X-Via."
+      central_server_address: "DNS público"
+      central_server_address_help: "DNS público do servidor central ou endereço de IP externo. Usado para conexões a partir da rede externa para o servidor central."
+      software_token: "Token gerador de chaves"
+      pin: "PIN"
+      pin_help: "Será configurado um token gerador de chaves privadas para esta instância. Um PIN para acesso ao gerador deve ser definido."
+      repeat_pin: "Repetir PIN"
+      initialized: "Servidor central inicializado com sucesso"
+
+  orgs:
+    index:
+      name: "Código de registro"
+      fullname: "Nome do membro do X-Via"
+      enter_name: "Código de registro:"
+      enter_fullname: "Nome do membro do X-Via:"
+      add_address: "Adicionar endereço"
+      delete: "Remover"
+      add_contact: "Adicionar E-mail"
+      add_auth_cert_hash: "Adicionar hash do certificado de autenticação"
+      contact: "Endereços de E-mail"
+      address: "Endereços do servidor seguro"
+
+  members:
+    name: "Nome"
+    class: "Classe"
+    code: "Código único"
+    admin_contact: "Contato Administrativo"
+    search: "Procurar Membro da Rede"
+    add:
+      title: "Adicionar Membro da Rede"
+      load_from_file: "Ler Dados do Arquivo"
+    edit:
+      title: "Detalhes"
+      server: "Servidor"
+      details:
+        legend: "Detalhes"
+      contact:
+        title: "Editar contato do Membro"
+        legend: "Editar contato do Membro"
+      owned_servers:
+        legend: "Servidores"
+      global_group_membership:
+        legend: "Grupos"
+        group: "Grupo"
+        description: "Descrição"
+        subsystem:
+          table: "Subsistema"
+          add: "Adicionar membro como subsistema"
+        added_to_group: "Adicionado ao grupo"
+        add_member_to_group: "Adicionar '{{member}}' ao grupo"
+        remove_confirm: "Você tem certeza que deseja remover '{{member}}' do grupo global '{{group}}'?"
+      subsystems:
+        legend: "Subsistemas"
+        subsystem_code: "Código do subsistema"
+        used_servers: "Servidores em uso"
+        remove_confirm: "Você tem certeza que deseja remover o subsistema '{{subsystem}}' do membro '{{memberClass}}/{{memberCode}}'?"
+      used_servers:
+        legend: "Servidores em uso"
+        server_code: "Código do servidor"
+        client_subsystem_code: "Código do subsistem cliente"
+        server_owner: "Proprietário do servidor"
+        add:
+          title: "Nova solicitação de registro de cliente"
+          management_service_provider_title: "Solicitação de registro do provedor de serviços de gerenciamento"
+          client:
+            legend: "Informações do cliente"
+        remove:
+          title: "Solicitar remoção do cliente"
+          client:
+            legend: "Informação do cliente"
+      name:
+        title: "Editar Nome do Membro"
+      all_servers:
+        search:
+          title: "Servidores Seguros"
+    remove_confirm: "Você tem certeza que deseja remover o membro '{{memberClass}}/{{memberCode}}'? {{ownedServersMessage}}"
+    removable_owned_servers: "Os servidores seguros pertencentes à esto membro também serão removidos: '{{serversToRemove}}'"
+
+  management_requests:
+    legend: "Requisições"
+    process_id: "ID da Requisição"
+    received: "Recebida"
+    process_type: "Tipo da Requisição"
+    created: "Criada em"
+    status: "Status"
+    request_id: "ID da requisição"
+    request_type: "Tipo da requisição"
+    comments: "Comentários"
+    auth_cert_reg: "Registro de certificado"
+    client_reg: "Registro de cliente"
+    auth_cert_deletion: "Remoção de certificado"
+    client_deletion: "Remoção de cliente"
+    owner_change: "Mudança de propriedade"
+    source: "Fonte"
+    source_center: "X-Via Central"
+    source_security_server: "Servidor Seguro"
+    server_owner_name: "Nome do proprietário"
+    server_owner_class: "Classe do proprietário"
+    server_owner_code: "Código do proprietário"
+    server_code: "Código do servidor"
+    complementary_id: "ID da requisição complementar"
+    revoking_id: "Revogar requisição"
+    details:
+      auth_cert_deletion:
+        title: "Detalhes da Solicitação de Remoção de Certificado de Autenticação"
+        legend: "Solicitação de remoção de certificado de autenticação submetida à Autoridade Central"
+      auth_cert_reg:
+        title: "Detalhes da Solicitação de Registro de Certificado de Autenticação"
+        legend: "Solicitação de registro de certificado de autenção submetida à Autoridade Central"
+        new:
+          title: "Registrar Certificado de Autenticação"
+      client_deletion:
+        title: "Detalhes da Solicitação de Remoção de Cliente"
+        legend: "Solicitação de remoção de cliente sumbetida à Autoridade Central"
+      client_reg:
+        title: "Detalhes da Solicitação de Registro de Cliente"
+        legend: "Solicitação de registro de cliente submetida à Autoridade Central"
+      owner_change:
+        title: "Detalhes da Solicitação de Mudança de Propriedade"
+        legend: "Solicitação de mudança de propriedade submetida à Autoridade Central"
+      approve_confirm: "Você tem certeza que deseja aprovar esta requisição?"
+      revoke_confirm: "Você te certeza que deseja revogar esta requisição?"
+      decline_confirm: "Você tem certeza que deseja rejeitar esta requisição?"
+      member_not_found: "<membro não encontrada>"
+    request:
+      legend: "Solicitar Informação"
+    securityserver:
+      legend: "Servidores Seguros afetados"
+
+  securityservers:
+    server_code: "Código do Servidor"
+    owner_name: "Proprietário"
+    owner_class: "Proprietária"
+    owner_code: "Código"
+    address: "DNS/IP Público"
+    registered: "Registrado"
+    info:
+      legend: "Informações do Servidor Seguro"
+    details:
+      title: "Detalhes do Servidor Seguro"
+      legend: "Detalhes do Servidor Seguro"
+    edit:
+      address:
+        title: "Editar DNS/IP Público"
+      categories:
+        title: "Categorias"
+    categories:
+      legend: "Categorias"
+    clients:
+      legend: "Clientes"
+      name: "Nome"
+      class: "Classe"
+      code: "Código"
+      subsystem_code: "Subsistema"
+      add: "Adicionar cliente"
+    auth_cert:
+      legend: "Certificado de Autenticaçäo"
+      ca: "CA"
+      serial_number: "Número de Série"
+      subject: "Subject"
+      expires: "Data de Expiração"
+      upload: "Data de Upload"
+      add:
+        title: "Adicionar Certificado de Autenticaçao"
+      owner:
+        legend: "Servidor Seguro"
+      cert:
+        legend: "Certificado de Autenticação"
+      delete:
+        title: "Remover Certificado de Autenticação"
+    remove_confirm: "Você tem certeza que deseja remover o Servidor Seguro '{{server}}' pertencente à '{{ownerClass}}/{{ownerCode}}'?"
+
+  groups:
+    code: "Código"
+    updated: "Atualizado"
+    member_count: "Membros"
+    add:
+      button: "Adicionar"
+      title: "Novo Grupo"
+      selected: "Adicionar Selecionados"
+      all: "Adicionar Todos"
+    remove:
+      confirm: "Você tem certez que deseja remover o grupo '{{group}}'?"
+      selected_members_confirm: "Você tem cereteza que deseja remover os membros selecionadas do gupo '{{group}}'?"
+      all_members_confirm: "Você tem cereteza que deseja remover todas os membros do grupo '{{group}}'?"
+    details:
+      title: "Grupo '{{group}}'"
+      members: "Membros"
+      members_add_title: "Adicionar membros ao grupo '{{group}}'"
+      members_add_search_show_members: "Mostrar membros em buscas"
+      name: "Nome "
+      code: "Código"
+      class: "Classe"
+      subsystem: "Subsistema"
+      xroad: "Rede X-Via"
+      type: "Tipo"
+      added: "Adicionado"
+      delete_group: "Remover grupo"
+      remove_selected_members: "Remover membros selecionadas"
+      remove_all_members: "Remove todas os membros"
+      add_members: "Adicionar membros"
+      description:
+        edit:
+          title: "Editar Descrição"
+    index:
+      group_name: "Nome do Grupo"
+      org_name: "Nome do membro da rede X-Via"
+      group_to_org: "Mostrar por grupos"
+      org_to_group: "Mostrar por membros"
+      org_not_in_group: "Membros do X-Via que não pertencem ao grupo selecionado"
+
+  central_services:
+    central_service: "Serviço Central"
+    service_code: "Código"
+    implementing_service_code: "Código"
+    implementing_service: "Serviços implementados"
+    provider_legend: "Provedor"
+    provider_name: "Nome do Provedor de Serviços"
+    provider_code: "Código do Provedor de Serviços"
+    service_version: "Versão"
+    provider_class: "Classe do Provedor de Serviços"
+    provider_subsystem: "Subsistema do Provedor de Serviços"
+    details:
+      button: "Adicionar"
+      central_service_code: "Código do Serviço Central"
+      implementing_service:
+        legend: "Serviços Implementados"
+        code: "Código"
+        provider_name: "Nome do Provedor"
+        search_title: "Selecione as Implementações do Provedor de Serviços"
+      search_provider: "Buscar Provedor"
+    remove_confirm: "Tem certeza que deseja remover o serviço central '{{service}}'?"
+    new_title: "Adicionar Novo Serviço Central"
+    edit_title: "Editar Seviço Central '{{service}}'"
+    remove_target_service_confirm: "Tem certeza que deseja remover o serviço de destono do Serviço Central '{{service}}'?"
+
+  layouts:
+    application:
+      title: "Servidor Central UI"
+      server_type: "Servidor Central"
+
+  approved_cas:
+    upload_ca_cert: "Inserir Certificado da AC Raiz"
+    upload_intermediate_ca_cert: "Inserir Certificado de AC Intrermediária"
+    trusted_certification_service: "Autoridades Certificadoras Aprovadas"
+    approved_ca_details: "Detalhes da Autoridade Certificadora"
+    ca_certificate: "Certificado da AC"
+    ocsp_responders: "OCSP Responders"
+    edit_ocsp_responder: "Editar OCSP Responder"
+    add_ocsp_responder: "Adicionar OCSP Responder"
+    ca_settings: "Configurações da AC"
+    authentication_only: "Esta AC deve ser utilizada apenas para autenticações TLS"
+    authentication_only_hint: "(marque se esta AC estiver apenas autorizada a emitir certificados TLS)"
+    cert_profile_info: "Classe Validadora"
+    cert_profile_info_hint: "(nome completo da classe que implementa a interface \n ee.ria.xroad.common.certificateprofile.\nCertificateProfileInfoProvider)"
+    intermediate_cas: "ACs intermediárias "
+    intermediate_ca: "AC Intermediária"
+    intermediate_ca_details: "Detalhes da AC Intermediária"
+    valid_from: "Válido a partir de"
+    valid_to: "Valido até"
+    remove_confirm: "Você tem certeza que deseja remover a AC '{{approvedCa}}' da lista de autoridades certificadoras aprovadas?"
+
+  distributed_files:
+    filetype: "Tipo de Arquivo"
+    info: "Informações"
+    no_file: "Arquivo não encontrado"
+    last_result: "Último resultado"
+
+  system_status:
+    enter_softtoken_pin: "Clique aqui para digitar PIN"
+    softtoken_pin_not_entered: "PIN para o token gerador de chaves de assinaturas não registrado"
+    signing_token_not_initialized: "Token Gerador de Chaves de assinatura não inicializado. Você pode fazer isso utilizando o signer-console."
+
+  tsps:
+    edit_new: "Adicionar Autoridade de Carimbo de Tempo"
+    edit_existing: "Editar Autoridade de Carimbo de Tempo"
+    remove_confirm: "Você tem certeza que deseja remover a Autoridade de Carimbo de Tempo '{{tsp}}'?"
+
+  configuration_management:
+    source_tab:
+      internal_configuration: "Configuração Interna"
+      external_configuration: "Configuração Externa"
+      recreate: "Recriar"
+      anchor: "Âncora de Configuração"
+      anchor_file_not_found: "Âncora de Configuração não encontrada"
+      download_url: "URL de Download"
+      signing_keys: "Chaves de Assinatura"
+      token: "Token"
+      label: "Nome"
+      login: "Login"
+      logout: "Sair"
+      activate: "Ativar"
+      new_key: "Nova Chave"
+      device_key: "ID do Dispositivo: ID da Chave"
+      configuration_parts: "Módulos de configuração"
+      file_name: "Arquivo"
+      content_identifier: "Identificador do Conteúdo"
+      version: "Versão"
+      updated: "Atualizado"
+      upload_configuration_part: "Upload do Módulo de Configuração"
+      activate_signing_key_confirm: "Ativar chave '{{key_id}}'?"
+      delete_signing_key_confirm: "Remover chave '{{key_id}}'?"
+      part_validator_stderr_title: "Erro padrão do módulo de configuração"
+    trusted_anchors:
+      title: "Âncoras Confiáveis"
+      none: "Nenhuma âncora de configuração encontrada."
+      download: "Baixar"
+      delete: "Apagar"
+      delete_confirm: "Você tem certeza que deseja remover a âncora de configuração da instância '{{instanceIdentifier}}'?"
+      generated: "Gerado:"
+      upload:
+        button_title: "Enviar Âncora"
+        dialog_title: "Enviar Âncora Confiável"
+        confirm: "Você tem certeza que deseja enviar uma nova âncora de configuração confiável?"
+      save:
+        dialog_title: "Confirmar envio"
+
+  system_settings:
+    index:
+      system_parameters: "Configurações"
+      instance_identifier: "Identificador da Instância"
+      central_server_address: "DNS/IP Público do Servidor Central"
+      management_services: "Provedor de Gerenciamento"
+      service_provider_id: "ID do Provedor"
+      service_provider_name: "Nome do Provedor"
+      service_provider_security_servers: "Servidor Seguro"
+      wsdl_address: "URL do WSDL"
+      services_address: "URL do Serviço"
+      security_server_owners_group: "Grupo do Proprietário"
+      member_classes: "Classe"
+      member_class_code: "Código Único"
+      member_class_description: "Descrição"
+      member_class_add: "Adicionar Classe de Membros"
+      member_class_edit: "Editar Classe de Membros"
+
+  shared:
+    cert_details_dialog:
+      cert_details: "Detalhes do certificado"

@@ -1,0 +1,294 @@
+pt-BR:
+  menu:
+    configuration:
+      title: "Configurações"
+      tsp: "Carimbo de Tempo"
+      approved_ca: "Autoridades Certificadoras"
+      org: "Membros da Rede"
+      group: "Grupos Globais"
+      member: "Membros da Rede"
+      securityserver: "Servidores Seguros"
+      central_service: "Serviços Centrais"
+    management:
+      title: "Gerenciamento"
+      request: "Gerenciar Solicitações"
+      configuration_management: "Configurações Globais"
+      system_settings: "Configurações do Sistema"
+      distributed_file: "Arquivos de Distribuição"
+    help:
+      title: "Ajuda"
+      version: "Versão"
+      feedback: "Feedback"
+      licence_info: "Licenciamento"
+
+  common:
+    db_error: "Não foi possivel conectar-se ao banco de dados"
+    submit: "Salvar"
+
+  about:
+    action:
+      index: "mostrar versão da aplicação"
+
+  application:
+    action:
+      member_classes: "obter classe da do membro"
+      set_locale: "definir linguagem da aplicação"
+
+  init:
+    not_authorized: "Não Autorizado - Contate o adminstrador"
+    already_initialized: "Servidor central já inicializado"
+    mismatching_pins: "Os PINs do token gerador de chaves não são iguais"
+    init_params:
+      central_server_address:
+        host: "Deve ser informado um nome de domínio ou um endereço de IP"
+
+  approved_cas:
+    action:
+      index: "Mostrar página de ACs aprovadas"
+      get_cert_details_by_id: "Obter detalhes do certificado temporário da AC por id"
+      get_records_count: "Obter número de ACs aprovadas"
+      can_see_details: "verificar visibilidade das ACs aprovadas"
+      refresh: "Atualizar lista de ACs aprovadas"
+      get_intermediate_ca_temp_cert_details: "obter lista de certificado temporário das ACs intermediarias"
+      get_existing_intermediate_ca_cert_details: "obter detalhes dos certificados de AC intermediárias existentes"
+      get_existing_intermediate_ca_cert_dump_and_hash: "obter dump e hast dos certificados de CA intermediários existentes"
+      get_top_ca_cert_details: "get service CA certificate details"
+      get_top_ca_cert_dump_and_hash: "get service CA certificate dump and hash"
+      get_ocsp_infos: "get OCSP infos"
+      get_existing_ocsp_cert_details: "get existing OCSP certificate details"
+      get_intermediate_cas: "get intermediate CAs"
+      upload_top_ca_cert: "upload service CA certificate"
+      upload_ocsp_responder_cert: "upload OCSP responder certificate"
+      upload_intermediate_ca_cert: "upload intermediate CA certificate"
+      save_new_approved_ca: "save new approved CA"
+      edit_existing_approved_ca: "edit existing approved CA"
+      delete_approved_ca: "delete approved CA"
+    approved_ca_added: "Certification service added successfully"
+    intermediate_ca_added: "Intermediate CA added successfully"
+    ca_settings_saved: "CA settings saved"
+
+  orgs:
+    name_exists: "Este código de registro já está em uso"
+    fullname_exists: "Este nome já está em uso"
+    delete_success: "Membro do X-Via removido"
+    org_type_error: "Tipo de membro do X-via desconhecido"
+    name_error: "Não foi possível ler o código de registro (short name) de '{{org}}'"
+    fullname_error: "Nao foi possível ler o nome de '{{org}}'"
+    invalid_name: "O nome do banco de dados não deve iniciar com números"
+    card_not_available: "Smart card obrigatório (Série: {{serial}}) não disponível"
+
+  validation:
+    member_exists: "Um membro com a classe '%{member_class}' e o código '%{member_code}' já existe"
+    securitserver_exists: "Um Servidor Seguro com o código '%{server_code}', de propriedade de (membro: '%{member_code}' e classe: '%{member_class}') já existe"
+    invalid_uri: "URI '%{uri}' inválida para o atributo '%{attribute}'"
+    already_exists: "Atributo '%{attribute}' com valor '%{value}' já existe"
+
+  central_services:
+    action:
+      index: "mostrar página de serviços centrais"
+      get_records_count: "obter número de serviços centrais"
+      can_see_details: "verificar visibilidade dos detalhes do serviço central"
+      services_refresh: "Atualizar tabela de serviços centrais"
+      search_providers: "buscar provedores de serviços centrais"
+      save_service: "salvar serviço central"
+      update_service: "atualizar serviço central"
+      delete_service: "apagar serviço central"
+      delete_target_service: "apagar serviço de destino"
+    provider_not_found: "Provedor com ID '%{provider_id}' não encontrado"
+    add:
+      provider_not_found: "Provedor não encontrado"
+      provider_with_no_service_code: "Não é possível salvar o serviço central sem um código"
+
+  identifiers:
+    service_code_empty: "O código do serviço deve ser especificado"
+
+  groups:
+    action:
+      index: "mostrar página de grupos"
+      get_records_count: "obter quantidade de grupos"
+      can_see_details: "Verificar visibilidade dos detalhes do grupo"
+      global_groups_refresh: "atualizar tabela de grupos"
+      group_members: "obter membros do grupo global"
+      addable_members: "obter lista de membros adicionáveis"
+      xroad_instance_codes: "obter códigos de instâncias X-Road"
+      types: "obter tipos distintos de objetos"
+      get_member_count: "obter número de membros"
+      find_by_id: "obter grupo por id"
+      group_add: "adicionar grupo"
+      group_edit_description: "editar descrição do grupo"
+      delete_group: "apagar grupo"
+      remove_selected_members: "remover membros selecionados do grupo"
+      add_members_to_group: "adicionar membros ao grupo"
+    delete: "Grupo removido com sucesso"
+    change_description: "Descrição modificada com sucesso"
+    remove_selected_members: "Membros selecionados removidos com sucesso"
+    remove_matching_members: "Membros removidos com sucesso"
+
+  members:
+    action:
+      get_records_count: "Obter número de membros da rede"
+      can_see_details: "verificar visibilidade do membro da rede"
+      members_refresh: "atualizar lista de membros da rede"
+      owned_servers: "listar servidores associados"
+      global_groups: "listar grupos"
+      subsystems: "listar subsistemas"
+      used_servers: "listar servidores associados"
+      management_requests: "listar solcitações de gerenciamento"
+      remaining_global_groups: "listar grupos restantes"
+      get_member_by_id: "listar membros por ID"
+      subsystem_codes: "listar códigos dos subsistemas"
+      member_add: "adicionar membro"
+      member_edit: "editar membro"
+      delete: "apagar membro"
+      add_subsystem: "adicionar subsistema"
+      delete_subsystem: "remover subsistema"
+      import_auth_cert: "importar certificado de autenticação"
+      add_new_owned_server_request: "nova solicitaçao de propriedade de servidor"
+      add_new_server_client_request: "nova solicitaçao de registro de cliente"
+      delete_server_client_request: "apagar solicitaçao de registro de cliente"
+      add_member_to_global_group: "adicionar membro ao grupo"
+      delete_member_from_global_group: "remover membro do grupo"
+
+    added: "Membro da rede X-Via da classe '%{member_class}' e código '%{member_code}' adicionado com sucesso."
+    server_already_exists: "Adicionado com sucesso o ervidor seguro da classe '%{member_class}', de propriedade de '%{member_code}' e código '%{server_code}' already exists."
+    subsystem_already_exists: "Subsistema '%{subsystem_code}' já existe."
+    auth_cert_request_added: "Solicitação para adicionar o certificado de autenticação ao novo servidor seguro '%{security_server}' registrada com sucesso"
+    client_add_request_added: "Solicitação para adicionar o cliente '%{client_id}' ao servidor seguro '%{server_id}' registrada com sucesso"
+    client_deletion_request_added: "Requisição de remoção do cliente '%{client_id}' do servidor seguro '%{server_id}' registrado com sucesso"
+    member_added_to_global_group: "Membro '%{member_code}' adicionado com sucesso ao grupo '%{group_code}'"
+    member_deleted_from_global_group: "Membro '%{member_code}' removido com sucesso do grupo '%{group_code}'"
+
+  securityservers:
+    action:
+      index: "mostrar página de servidores seguros"
+      get_records_count: "obter número de servidores seguros"
+      can_see_details: "verificar visibilidade dos detalhes do servidor seguro"
+      get_cert_details_by_id: "listar detalhes do certificado por ID"
+      securityservers_refresh: "atualizar lista de servidores seguros"
+      server_security_categories: "listar servidores seguros por categoria"
+      all_security_categories: "listar todas as categorias"
+      clients: "listar clientes do servidor seguro"
+      auth_certs: "listar certificados de autenticação do servidor seguro"
+      management_requests: "listar requisições de gerenciamentos de serviço"
+      get_server_by_id: "listar servidores seguros por ID"
+      addable_clients: "listar clientes adicionáveis"
+      address_edit: "editar DNS/IP Público do servidor seguro"
+      edit_security_categories: "editar categorias"
+      delete: "remover servidor seguro"
+      import_auth_cert: "importar certificado de autenticação"
+      auth_cert_adding_request: "registrar solicitação de registro de certificado"
+      auth_cert_deletion_request: "registrar solicitação de remoção de certificado"
+    add_auth_cert_adding_request: "Solicitação para adicionar o certificado de autenticação ao servidor seguro '%{security_server}' registrada com sucesso"
+    add_auth_cert_deletion_request: "Solicitação de remoção de certificado de autenticação do servidor seguro '%{security_server_id}' registrada com sucesso"
+
+  system_status:
+    action:
+      index: "mostrar página de diaginóstico"
+      check_status: "verificar diagnóstico do sistema"
+      enter_signing_token_pin: "entre o PIN do token gerador de chaves"
+
+  requests:
+    action:
+      index: "mostrar página de gerenciamento de solicitações"
+      get_records_count: "obter quantidade de solicitações"
+      can_see_details: "verificar visibilidade dos detalhes das solicitações"
+      requests_refresh: "atualizar lista de solicitações"
+      get_additional_request_data: "obter dados adicionais da solicitação"
+      get_auth_cert_reg_request_data: "listar dados da solicitação de registro de certificado de autenticaçao"
+      get_client_reg_request_data: "listar dados da solicitação de registro de cliente"
+      get_auth_cert_deletion_request_data: "listar dados da solicitação de remoção de certificado de autenticação"
+      get_client_deletion_request_data: "listar dados da solicitação de remoção de clientes"
+      revoke_client_reg_request: "revogar solicitação de remoção de cliente"
+      revoke_auth_cert_reg_request: "revogar solicitação de remoção de certificado de autenticação"
+      approve_reg_request: "aprovar requisição"
+      decline_reg_request: "rejeitar requisição"
+    client_reg_request_revoked: "A solicitação de registro de cliente de id '%{id}' foi revogada com sucesso"
+    auth_cert_reg_request_revoked: "A solicitação de registro de certificado de autenticação de id '%{id}' foi revogada com sucesso"
+    request_approved: "Solicitação '%{id}' aprovada com sucesso"
+    request_declined: "Solicitação '%{id}' rejeitada"
+
+  status:
+    global_conf_gen:
+      no_status_file: "O arquivo de status da configuração global não foi encontrado, favor verificar-se de que o serviço center-service está funcionando corretamente"
+      out_of_date: "O arquivo de configuração global está desatualizado. Data da última geração: '%{time}', favor verificar-se de que o serviço center-service está funcionando corretamente"
+      failure: "Geração do arquivo de configuração global com problemas desde '%{time}'"
+    signing_key:
+      signer_error: "Erro ao invocar o serviço de assinaturas digitais: %{message}"
+      internal:
+        missing: "Erro ao assinar o arquivo de configuração interna - não existe uma chave ativa"
+        token_not_found: "Erro ao assinar o arquivo de configuração interna - token gerador de chaves não encontrado"
+        token_not_active: "Erro ao assinar o arquivo de configuração interna - PIN do token gerador de chaves não registrado"
+        key_not_available: "Erro ao assinar o arquivo de configuração interna - chave nao disponível"
+      external:
+        missing: "Erro ao assinar o arquivo de configuração externa - não existe uma chave ativa"
+        token_not_found: "Erro ao assinar o arquivo de configuração externa - token gerador de chaves não encontrado"
+        token_not_active: "Erro ao assinar o arquivo de configuração externa - PIN do token gerador de chaves não registrado"
+        key_not_available: "Erro ao assinar o arquivo de configuração externa - chave nao disponível"
+
+  configuration_management:
+    action:
+      index: "mostrar página de configurações"
+      source: "mostrar fonte de configuração"
+      download_source_anchor: "baixar âncora de confição da fonte"
+      available_tokens: "listar tokens de chaves disponíveis"
+      download_conf_part: "baixar parte de configuração"
+      trusted_anchors: "mostrar âncoras confiáveis"
+      download_trusted_anchor: "baixar âncoras confiáveis"
+      upload_trusted_anchor: "enviar âncora confiável"
+      save_uploaded_trusted_anchor: "salvar âncora confiável enviada"
+      clear_uploaded_trusted_anchor: "limpar âncoras confiáveis enviadas"
+      delete_trusted_anchor: "remover âncora confiável"
+      generate_source_anchor: "gerar âncora da fonte"
+      generate_signing_key: "gerar chave de assinatura"
+      activate_signing_key: "ativar chave de assinatura"
+      delete_signing_key: "remover chave da configuração do servidor central"
+      logout_token: "logout token de assinatura"
+      upload_conf_part: "enviar configuração parcial"
+    sources:
+      internal_anchor_generated: "Âncora de configuração interna gerada com sucesso"
+      internal_anchor_error: "Erro gerando âncora de configuração interna: %{reason}"
+      external_anchor_generated: "Âncora de configuração externa gerada com sucesso"
+      external_anchor_error: "Erro gerando âncora de configuração externa: %{reason}"
+      token_or_key_not_available: "token ou chave não disponível"
+      deleting_key_from_token_failed: "Erro removendo chave do token '%{token}': %{reason}"
+      deleting_key_from_token_success: "Chave removida do token '%{token}' com sucesso "
+      deleting_key_from_conf_success: "Chave removida com sucesso da configuração do servidor central"
+      optional_part_conf_error: "Não é possível ler a parte de configuração opcional %{message}."
+      conf_part_upload:
+        successful: "Arquivo de configuração do identificador de conteúdo '%{content_identifier}' carregado com sucesso"
+        warnings: "Arquivo de configuração para o identificador de conteúdo '%{content_identifier}' carregado com alguns avisos."
+        error: "A validação do arquivo de configuração com o identificador de conteúdo '%{content_identifier}' falhou."
+        program_ended: "O programa de validação '%{program}' terminou prematuramente, verifique se ele fez a coisa certa."
+        io_error: "Ocorreu um erro de IO ao executar o programa de validação '%{program}', mensagem: '%{message}'"
+        no_program: "O programa de validação '%{program}' não existe no sistema de arquivos."
+    trusted_anchors:
+      upload_successful: "A âncora de configuração da instância '%{instance}' foi carregada com sucesso."
+      delete_successful: "A âncora de configuração da instância '%{instance}' foi excluída com sucesso."
+      upload_info:
+        instance: "Identificador da instância: %{instance}"
+        generated: "Âncora de configuração gerada: %{gerada}"
+        hash: "Hash da âncora de configuração (%{alg}): %{hash}"
+      error:
+        same_instance: "As âncoras originárias dessa instância de rede não são suportadas como âncoras confiáveis."
+        anchor_malformed: "Estrutura de arquivo incorreta."
+
+  tsps:
+    action:
+      index: "Mostrar ACTs aprovadas"
+      get_records_count: "obter contagem de registros de ACTs aprovados"
+      can_see_details: "verificar visibilidade dos detalhes das TSA autorizadas"
+      get_cert_details_by_id: "listar detlahes do certificado por ID"
+      tsps_refresh: "atualizar lista de ACTs aprovadas"
+      get_existing_tsp_cert_details: "obter detalhes dos certificados de ACT existentes"
+      get_existing_tsp_cert_dump_and_hash: "listar dump and hash dos certificados de ACTs existentes"
+      save_new_tsp: "salvar nova ACT"
+      edit_existing_tsp: "editar ACT existente"
+      delete_tsp: "remover ACT aprovada"
+      upload_tsp_cert: "enviar certificado da ACT"
+
+  system_settings:
+    member_class_already_exists: "Já existe uma classe com o mesmo código"
+    central_server_address_edit_params:
+      centralServerAddress:
+        host: "O Servidor Central deve possuir um DNS válido ou um endereço de IP"
+    service_provider_registered: "Provedor de serviço de gerenciamento '%{client_id}' registrado como cliente do servidor seguro '%{server_id}'"
