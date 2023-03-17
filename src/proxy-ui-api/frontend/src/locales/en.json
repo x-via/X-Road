@@ -64,8 +64,8 @@
   },
   "alert": {
     "count": "Amount of same errors:",
-    "warningCount": "Amount of same warnings",
-    "id": "ID"
+    "id": "ID",
+    "warningCount": "Amount of same warnings"
   },
   "apiKey": {
     "createApiKey": {
@@ -140,8 +140,8 @@
     "backupConfiguration": {
       "button": "Back up config.",
       "message": {
-        "success": "Backup {file} successfully created",
-        "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead."
+        "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead.",
+        "success": "Backup {file} successfully created"
       }
     },
     "uploadBackup": {
@@ -276,6 +276,29 @@
     "addOnStatus": {
       "messageLogDisabled": "Disabled by configuration"
     },
+    "encryption": {
+      "backup": {
+        "configuredKeyId": "Configured Key Id",
+        "title": "Backup encryption"
+      },
+      "messageLog": {
+        "archive": {
+          "defaultKeyNote": "This member is configured to use the servers default encryption key. For additional security, consider defining a specific key to be used.",
+          "groupingTitle": "Grouping rule:",
+          "keyId": "Key id",
+          "memberIdentifier": "Member identifier",
+          "title": "Message log archive encryption"
+        },
+        "database": {
+          "title": "Message log database encryption"
+        }
+      },
+      "status": {
+        "false": "Disabled",
+        "true": "Enabled"
+      },
+      "statusTitle": "Encryption status:"
+    },
     "globalConfiguration": {
       "configurationStatus": {
         "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
@@ -325,29 +348,6 @@
         "UNKNOWN": "Unknown"
       },
       "title": "Timestamping"
-    },
-    "encryption": {
-      "status": {
-        "false": "Disabled",
-        "true": "Enabled"
-      },
-      "statusTitle": "Encryption status:",
-      "backup": {
-        "title": "Backup encryption",
-        "configuredKeyId": "Configured Key Id"
-      },
-      "messageLog": {
-        "archive": {
-          "title": "Message log archive encryption",
-          "groupingTitle": "Grouping rule:",
-          "memberIdentifier": "Member identifier",
-          "keyId": "Key id",
-          "defaultKeyNote": "This member is configured to use the servers default encryption key. For additional security, consider defining a specific key to be used."
-        },
-        "database": {
-          "title": "Message log database encryption"
-        }
-      }
     }
   },
   "endpoints": {
@@ -745,14 +745,14 @@
     "noBackUpEncryptionKeys": "No configured backup encryption keys",
     "noBackups": "No backups yet",
     "noCertificate": "No certificate",
+    "noCertificateAuthorities": "No certificate authorities",
     "noCertificates": "No certificates",
     "noClientData": "No client data",
-    "noCertificateAuthorities": "No certificate authorities",
     "noData": "No data",
     "noLocalGroups": "No local groups",
     "noMatches": "No items matching criteria",
-    "noServices": "No services",
     "noServiceClients": "No service clients",
+    "noServices": "No services",
     "noTimestampingServices": "No timestaping services",
     "noTokens": "No tokens"
   },
@@ -827,13 +827,13 @@
     "url": "URL",
     "urlPlaceholder": "Insert URL",
     "urlTooltip": "The URL where requests targeted at the service are directed",
+    "verifyTls": "Verify TLS certificate",
     "warning": "Warning",
     "warningCode": {
       "adding_services": "Adding services:",
       "deleting_services": "Deleting services:",
       "wsdl_validation_warnings": "Validation warnings:"
     },
-    "verifyTls": "Verify TLS certificate",
     "wsdlAdded": "WSDL added",
     "wsdlDescription": "WSDL Description",
     "wsdlDetails": "WSDL details"

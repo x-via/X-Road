@@ -45,7 +45,7 @@
               <div class="login-form-toolbar-title">
                 {{ $t('login.logIn') }}
               </div>
-              <div class="sub-title">X-Road Security Server</div>
+              <div class="sub-title">Servidor Seguro X-Via</div>
             </div>
           </v-toolbar>
 

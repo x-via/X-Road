@@ -25,18 +25,18 @@
  */
 import Vue from 'vue';
 import VueI18n from 'vue-i18n';
-import en from 'vee-validate/dist/locale/en.json';
+import pt_BR from 'vee-validate/dist/locale/pt_BR.json';
 
 Vue.use(VueI18n);
 
-import locals from './locales/en.json';
+import locals from './locales/pt_BR.json';
 // Any is ok here, there is no definition for the locale format
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(locals as any).validation = en.messages;
+(locals as any).validation = pt_BR.messages;
 
 export default new VueI18n({
-  locale: process.env.VUE_APP_I18N_LOCALE || 'en',
-  fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || 'en',
+  locale: process.env.VUE_APP_I18N_LOCALE || 'pt_BR',
+  fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || 'pt_BR',
   silentFallbackWarn: true,
   messages: {
     en: locals,
