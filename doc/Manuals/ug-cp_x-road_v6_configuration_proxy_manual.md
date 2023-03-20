@@ -143,11 +143,11 @@ To install the X-Road configuration proxy software, follow these steps.
 
 1.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-        curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+        curl -sS https://xvia.jfrog.io/artifactory/api/gpg/key/public | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/xvia.gpg
 
 2.  Add X-Road package repository (**reference data: 1.1**)
 
-        sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+        sudo apt-add-repository -y "deb https://xvia.jfrog.io/artifactory/xvia-debian $(lsb_release -sc) main"
 
 3.  Issue the following commands to install the configuration proxy packages:
 

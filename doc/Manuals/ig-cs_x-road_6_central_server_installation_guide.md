@@ -190,12 +190,12 @@ Requirements for software and settings:
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 ```bash
-curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+curl -sS https://xvia.jfrog.io/artifactory/api/gpg/key/public | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/xvia.gpg
 ```
 
 Add X-Road package repository (**reference data: 1.1**)
 ```bash
-sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+sudo apt-add-repository -y "deb https://xvia.jfrog.io/artifactory/xvia-debian $(lsb_release -sc) main"
 ```
 
 **This is an optional step.** Add a package repository for an alternative Java distribution. According to [the Ubuntu blog](https://ubuntu.com/blog/announcing-openjdk-11-packages-in-ubuntu-18-04-lts), Ubuntu OpenJDK 8 security updates end in April 2021. [AdoptOpenJDK](https://adoptopenjdk.net/) is an open-source Java 8 distribution that is [supported until May, 2026](https://adoptopenjdk.net/support.html#roadmap).

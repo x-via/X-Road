@@ -265,12 +265,12 @@ Requirements to software and settings:
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 ```bash
-curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+curl -sS https://xvia.jfrog.io/artifactory/api/gpg/key/public | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/xvia.gpg
 ```
 
 Add X-Road package repository (**reference data: 1.1**)
 ```bash
-sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+sudo apt-add-repository -y "deb https://xvia.jfrog.io/artifactory/xvia-debian $(lsb_release -sc) main"
 ```
 
 Update package repository metadata:
