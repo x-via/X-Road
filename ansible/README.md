@@ -53,7 +53,7 @@ While it is possible to define different variants for different security servers
 Playbook `xroad_init.yml` uses package repositories for X-Road installations.
 The default repository configurations are:
 
-* for Ubuntu 20 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb focal-current main`
+* for Ubuntu 20 DEB-packages `deb https://xvia.jfrog.io/artifactory/xvia-debian focal main`
 * for RHEL 8 packages `https://artifactory.niis.org/xroad-release-rpm/rhel/8/current`.
 
 The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for RHEL and Ubuntu.

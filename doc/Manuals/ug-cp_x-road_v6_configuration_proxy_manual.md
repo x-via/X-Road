@@ -92,7 +92,7 @@ The configuration proxy can be configured to mediate several global configuratio
 
 ### 2.1 Supported Platforms
 
-The configuration proxy runs on the Ubuntu Server 20.04 LTS or 22.04 LTS operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
+The configuration proxy runs on the Ubuntu Server 20.04 LTS or 22.04 LTS operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://xvia.jfrog.io/artifactory/xvia-debian](https://xvia.jfrog.io/artifactory/xvia-debian).
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -106,8 +106,8 @@ The software can be installed both on physical and virtualized hardware (of the 
 | Ref |                                                     | Explanation                                                                                                                                                                                                                                                                                |
 |-----|-----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1.0 | Ubuntu 20.04, 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements.                                                                                                                                                                                                                                                                      |
-| 1.1 | https://artifactory.niis.org/xroad-release-deb      | X-Road package repository.                                                                                                                                                                                                                                                                 |
-| 1.2 | https://artifactory.niis.org/api/gpg/key/public     | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
+| 1.1 | https://xvia.jfrog.io/artifactory/xvia-debian      | X-Road package repository.                                                                                                                                                                                                                                                                 |
+| 1.2 | https://xvia.jfrog.io/artifactory/xvia-debian     | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
 | 1.3 | TCP 80                                              | Global configuration distribution.<br>Ports for inbound connections (from the external network to the configuration proxy).                                                                                                                                                                |
 | 1.4 | TCP 80                                              | Global configuration download.<br>Ports for outbound connections (from the configuration proxy to the external network).                                                                                                                                                                   |
 | 1.5 |                                                     | Configuration proxy’s public IP address, NAT address.                                                                                                                                                                                                                                      |
@@ -147,7 +147,7 @@ To install the X-Road configuration proxy software, follow these steps.
 
 2.  Add X-Road package repository (**reference data: 1.1**)
 
-        sudo apt-add-repository -y "deb https://xvia.jfrog.io/artifactory/xvia-debian $(lsb_release -sc) main"
+        sudo apt-add-repository -y "deb https://xvia.jfrog.io/artifactory/xvia-debian $(lsb_release -sc)-current main"
 
 3.  Issue the following commands to install the configuration proxy packages:
 

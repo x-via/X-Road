@@ -17,8 +17,8 @@ RUN apt-get -qq update \
     && apt-get -qq clean
 
 ARG DIST=jammy-current
-ARG REPO=https://artifactory.niis.org/xroad-release-deb
-ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
+ARG REPO=https://xvia.jfrog.io/artifactory/xvia-debian
+ARG REPO_KEY=https://xvia.jfrog.io/artifactory/api/gpg/key/public
 ARG COMPONENT=main
 
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
