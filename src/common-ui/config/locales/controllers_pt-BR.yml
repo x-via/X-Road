@@ -1,0 +1,116 @@
+pt-BR:
+  base_login:
+    action:
+      index: "entrar"
+      logout: "sair"
+
+  common:
+    params_error: "Erro nos parâmetros de consulta"
+    changes_saved: "Alterações salvas"
+    cert_imported: "Certificado importado com sucesso"
+    proxy_org_name: "X-Via Servidor Seguro"
+    proxy_org_name_az: "X-Via Servidor Seguro"
+    present: "Presente"
+    missing: "Não disponível"
+    time_format: "%d/%m/%Y %H:%M:%S"
+    time_format_with_timezone: "%Z %d/%m/%Y %H:%M:%S"
+    locale_en: "English (%{short})"
+    locale_et: "Eesti (%{short})"
+    locale_pt_BR: "Português (%{short})"
+    filename_error: "O nome do arquivo '%{file}' contém caracteres inválidos. Os caracteres válidos incluem: (A-Z), (a-z), (0-9), (_), (.), (-)."
+    user_action_error: "Falha ao %{translated_action_name}: %{error_message}"
+    session_timed_out: "<div class='align-center'>Sessäo expirada. Redirecionando.</div>"
+    restore_in_progress: "<div class='align-center'>Restauração em andamento. Redirecionando.</div>"
+    initialization_required: "<div class='align-center'>Reinicialização necessária. Redirecionando.</div>"
+
+  coded_exception:
+    pin_incorrect: "PIN incorreto"
+    key_not_found_on_token: "Chave '%{0}' não encontrada no token '%{1}'"
+    unsupported_sign_algorithm: "Algoritmo de assinatura não suportado: '%{0}'"
+    token_is_readonly: "Token '%{0}' é somente leitura"
+    cert_request_wrong_usage: "Não é possível adicionar o CSR '%{0}' à chave '%{1}'"
+    csr_not_found: "CSR '%{0}' não encontrado"
+    auth_cert_under_softtoken: "Os CSRs de autenticação só podem ser criados em tokens de software"
+    auth_key_not_found_for_server: "Não foi possível encontrar a chave de autenticação ativa para o Servidor Seguro '%{0}'"
+    certificate_with_hash_not_found: "Certificado com o hash '%{0}' não encontrado"
+    member_certs_not_found: "Não foi possível encontrar nenhum certificado para o membro '%{0}'"
+    member_has_no_suitable_certs: "O membro '%{0}' não possui os certificados adequados"
+    member_not_found: "Certificado emitido para um membro desconhecido '%{0}'"
+    failed_to_parse_cert: "Falha ao analisar o certificado: %{0}"
+    key_not_found_for_certificate: "CNão foi possível encontrar a chave correspondente ao certificado"
+    cert_exists_under_key: "CO certificado já existe para a chave '%{0}'"
+    wrong_cert_usage:
+      both: "Certificado com capacidade de assinatura e autenticação, mas apenas um deles permitido por certificado"
+      none: "O certificado não pode ser usado ne para assinatura nem autenticação"
+      auth_to_sign: "O certificado de autenticação não pode ser utilizado para assinar chaves"
+      sign_to_auth: "O certificado de assinatura não pode ser utilizado para chaves de autenticação"
+    cert_chain_validation_failed: "Falha na validação da cadeia de certificados: %{0}"
+    token_not_found: "Token '%{0}' não encontrado"
+    token_not_available: "Token '%{0}' não disponível"
+    token_not_active: "PIN do token não registrado"
+    token_not_initialized: "Token '%{0}' não inicializado"
+    key_not_found: "Chave '%{0}' não encontrada"
+    key_not_available: "Chave '%{0}' não disponível"
+    cert_with_id_not_found: "Certificado com o ID '%{0}' não encontrado"
+    login_failed: "Falha no login: %{0}"
+    logout_failed: "Falha no logout: %{0}"
+    cert_import_failed: "%{0}"
+
+  validation:
+    missing_param: "Parâmetro ausente: %{param}"
+    unexpected_param: "Parâmetro desconhecido: %{param}"
+    too_long_param: "O parâmetro '%{param}' excede 255 caracteres"
+    invalid_email: "Endereço de email inválido: '%{addr}'"
+    invalid_filename: "Nome de arquivo inválido: '%{val}'"
+    invalid_int: "Número inteiro inválido: '%{val}'"
+    invalid_identifier: "Identificador inválido: '%{val}'"
+    invalid_timeout: "O valor do tempo limite deve ser um número inteiro positivo."
+    invalid_url: "'%{val}' é um URL inválida, exemplos de URLs válidas: 'http://www.example.com', 'https://www.example.com'"
+    invalid_host_address: "Endereço de host inválido"
+    invalid_cert: "Formato de arquivo incorreto. Somente arquivos PEM e DER são permitidos."
+
+  menu:
+    management:
+      backup_and_restore: "Backup and Restauração"
+
+  about:
+    unknown: "desconhecido"
+
+  activate_token:
+    pin_locked: "PIN bloqueado"
+    pin_format_incorrect: "formado do PIN incorreto"
+    final_try: "tentativas restantes: 1"
+
+  backup:
+    action:
+      index: "exibir página de backup e restauração"
+      check_backup_file_existence: "verifica a existência do arquivo de backup"
+      refresh_files: "atualizar arquivos de backup"
+      download: "baixar arquivo de backup"
+      backup: "configurações de backup"
+      restore: "configurações de restauração"
+      delete_file: "excluir arquivo de backup"
+      upload_new: "enviar novo arquivo de backup"
+    success:
+      delete: "Arquivo de backup excluído com sucesso"
+      upload: "Novo arquivo de backup enviado com sucesso"
+    error:
+      delete: "Falha na exclusão dos arquivos de backup, motivo: '%{reason}'"
+      not_tar: "O conteúdo do arquivo enviado deve estar no formato TAR"
+      invalid_extension:
+        one: "O nome do arquivo enviado '%{file}' tem uma extensão inválida, a única extenão válida é '%{extensions}"
+        other: "O nome do arquivo enviado '%{file}' tem uma extensão inválida, as extensões válidas são '%{extensions}"
+      invalid_content_type: "Tipo de conteúdo inválido para o arquivo enviado: '%{content_type}', os tipos permitidos são '%{allowed_content_types}'"
+
+  conf_verification:
+    anchor_not_for_external_source: "A âncora aponta para uma fonte de configuração interna. Somente as âncoras da fonte de configuração externa são suportadas como âncoras confiáveis"
+    missing_private_params: "Falha na importação da âncora de configuração: arquivo âncora inválido"
+    unreachable: "Não é possível acessar a fonte de configuração, verifique a URL de origem no arquivo âncora carregado"
+    outdated: "A configuração da fonte está desatualizada"
+    signature_invalid: "A assinatura da configuração não pode ser verificada"
+    other: "A configuração da fonte falhou na verificação"
+
+  restore:
+    success: "Configuração restaurada com sucesso a partir do arquivo '%{conf_file}'."
+    error:
+      script_failed: "Falha ao restaurar a configuração a partir do arquivo '%{conf_file}'."
