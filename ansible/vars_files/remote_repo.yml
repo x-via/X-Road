@@ -6,7 +6,7 @@ xroad_repo_key:  "https://xvia.jfrog.io/artifactory/api/gpg/key/public"
 
 ubuntu_apt_key:  "{{xroad_repo_key}}"
 ubuntu_repo_url: "{{xroad_repo_baseurl}}/xvia-debian"
-ubuntu_apt_repo: "deb {{ubuntu_repo_url}} {{ansible_distribution_release}} main"
+ubuntu_apt_repo: "deb {{ubuntu_repo_url}} {{ansible_distribution_release}}-current main"
 
 rhel_repo_baseurl: "{{xroad_repo_baseurl}}/xroad-release-rpm/rhel/{{ansible_distribution_major_version}}/current"
 rhel_repo_gpgcheck: "yes"
