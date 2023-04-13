@@ -139,7 +139,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 | ------- | --------------------------| ---------------------------------------------------------- |
 | 1.0     | RHEL (7.3 or newer; 8.0 or newer), x86-64 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements
 | 1.1     | https://artifactory.niis.org/xroad-release-rpm  | X-Road package repository
-| 1.2     | https://xvia.jfrog.io/artifactory/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
+| 1.2     | https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
 | 1.3     |                                         | Account name in the user interface
 | 1.4     | **Inbound ports from external network** | Ports for inbound connections from the external network to the security server
 |         | TCP 5500                                | Message exchange between security servers
@@ -220,7 +220,7 @@ Add X-Road package repository (**reference data: 1.1**) and Extra Packages for E
   ```bash
   RHEL_MAJOR_VERSION=$(source /etc/os-release;echo ${VERSION_ID%.*})
   sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${RHEL_MAJOR_VERSION}.noarch.rpm
-  sudo yum-config-manager --add-repo https://artifactory.niis.org/xroad-release-rpm/rhel/${RHEL_MAJOR_VERSION}/current
+  sudo yum-config-manager --add-repo https://rw3tecnologia.jfrog.io/artifactory/xvia-release-rpm/rhel/${RHEL_MAJOR_VERSION}/current
   ```
 
 The following packages are fetched from EPEL: `crudini`, and `rlwrap`.
@@ -228,7 +228,7 @@ The following packages are fetched from EPEL: `crudini`, and `rlwrap`.
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
   ```bash
-  sudo rpm --import https://xvia.jfrog.io/artifactory/api/gpg/key/public
+  sudo rpm --import https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public
   ```
 
 If you are installing the default setup with local PostgreSQL database and want to enable the messagelog addon, continue at section 2.8. If you need to customize database properties and e.g. use a remote database or disable the messagelog addon, read on.

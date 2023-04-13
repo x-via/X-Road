@@ -14,8 +14,8 @@ RUN apt-get -qq update \
   && apt-get -qq clean
 
 ARG DIST=jammy-current
-ARG REPO=https://xvia.jfrog.io/artifactory/xvia-debian
-ARG REPO_KEY=https://xvia.jfrog.io/artifactory/api/gpg/key/public
+ARG REPO=https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local
+ARG REPO_KEY=https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public
 ARG COMPONENT=main
 
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
