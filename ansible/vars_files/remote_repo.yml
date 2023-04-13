@@ -2,7 +2,7 @@
 package_source: "remote"
 
 xroad_repo_baseurl: "https://rw3tecnologia.jfrog.io/artifactory"
-xroad_repo_key:  "https://rw3tecnologia.jfrog.io/artifactory/api/security/keypair/xvia-debian-local-gpg/public"
+xroad_repo_key:  "https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public"
 
 ubuntu_apt_key:  "{{xroad_repo_key}}"
 ubuntu_repo_url: "{{xroad_repo_baseurl}}/xvia-debian-local"
