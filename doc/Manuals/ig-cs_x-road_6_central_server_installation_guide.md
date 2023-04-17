@@ -144,8 +144,8 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 | **Ref** |                                                                                                                                                                                                                                                                                           | **Explanation**                                                                                                                                                                                                                                                                            |
 |---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1.0     | Ubuntu 20.04, 64-bit, 2 GB RAM, 3 GB free disk space                                                                                                                                                                                                                                      | Minimum requirements                                                                                                                                                                                                                                                                       |
-| 1.1     | https://xvia.jfrog.io/artifactory/xvia-debian                                                                                                                                                                                                                                            | X-Road package repository                                                                                                                                                                                                                                                                  |
-| 1.2     | https://xvia.jfrog.io/artifactory/api/gpg/key/public                                                                                                                                                                                                                                           | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
+| 1.1     | https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local                                                                                                                                                                                                                                            | X-Road package repository                                                                                                                                                                                                                                                                  |
+| 1.2     | https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public                                                                                                                                                                                                                                           | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
 | 1.3     |                                                                                                                                                                                                                                                                                           | Account name in the user interface                                                                                                                                                                                                                                                         |
 | 1.4     | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration                                                                                                                                                                           | Ports for inbound connections (from the external network to the central server)                                                                                                                                                                                                            |
 | 1.4.1   | TCP 4002 management services                                                                                                                                                                                                                                                              | Port for inbound connections from the management security server                                                                                                                                                                                                                           |
@@ -190,12 +190,12 @@ Requirements for software and settings:
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 ```bash
-curl -sS https://xvia.jfrog.io/artifactory/api/gpg/key/public | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/xvia.gpg
+curl -sS https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/xvia-debian-local.gpg
 ```
 
 Add X-Road package repository (**reference data: 1.1**)
 ```bash
-sudo apt-add-repository -y "deb https://xvia.jfrog.io/artifactory/xvia-debian $(lsb_release -sc)-current main"
+sudo apt-add-repository -y "deb https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local $(lsb_release -sc)-current main"
 ```
 
 **This is an optional step.** Add a package repository for an alternative Java distribution. According to [the Ubuntu blog](https://ubuntu.com/blog/announcing-openjdk-11-packages-in-ubuntu-18-04-lts), Ubuntu OpenJDK 8 security updates end in April 2021. [AdoptOpenJDK](https://adoptopenjdk.net/) is an open-source Java 8 distribution that is [supported until May, 2026](https://adoptopenjdk.net/support.html#roadmap).
@@ -503,8 +503,8 @@ The following packages are available in the repository.
 
 ```bash
 root@test-cs:~# apt-cache madison xroad-centralserver
-xroad-centralserver | 7.3.0-1.ubuntu20.04 | https://xvia.jfrog.io/artifactory/xvia-debian focal/main amd64 Packages
-xroad-centralserver | 7.1.2-1.ubuntu20.04 | https://xvia.jfrog.io/artifactory/xvia-debian focal/main amd64 Packages
+xroad-centralserver | 7.3.0-1.ubuntu20.04 | https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local focal/main amd64 Packages
+xroad-centralserver | 7.1.2-1.ubuntu20.04 | https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local focal/main amd64 Packages
 ```
 
 Now trying to upgrade the central server packages directly will produce the following error.
@@ -522,7 +522,7 @@ The fix is to upgrade the central server in two separate steps. First, upgrade t
 apt install xroad-base=7.1.2-1.ubuntu20.04 xroad-center=7.1.2-1.20.04 xroad-centralserver=7.1.2-1.ubuntu20.04 xroad-centralserver-monitoring=7.1.2-1.ubuntu20.04 xroad-confclient=7.1.2-1.ubuntu20.04 xroad-database-local=7.1.2-1.ubuntu20.04 xroad-jetty9=7.1.2-1.ubuntu20.04 xroad-nginx=7.1.2-1.ubuntu20.04 xroad-signer=7.1.2-1.ubuntu20.04
 ```
 
-An alternative approach to the previous command is to temporarily configure the server to use a repository that contains only the specific version of X-Road software we want to upgrade to. For example, configure the repository as `deb https://xvia.jfrog.io/artifactory/xvia-debian focal-7.1.2 main` and then use the `apt update` and `apt upgrade xroad-centralserver` commands.
+An alternative approach to the previous command is to temporarily configure the server to use a repository that contains only the specific version of X-Road software we want to upgrade to. For example, configure the repository as `deb https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local focal-7.1.2 main` and then use the `apt update` and `apt upgrade xroad-centralserver` commands.
 
 Finally, we can upgrade to our target version 7.3.x as follows.
 

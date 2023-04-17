@@ -175,8 +175,8 @@ The software can be installed both on physical and virtualized hardware (of the 
  **Ref** |                                                                                                                      | **Explanation**
  ------ |----------------------------------------------------------------------------------------------------------------------| ----------------------------------------------------------
  1.0    | Ubuntu 20.04, Ubuntu 22.04 (x86-64)<br>3 GB RAM, 3 GB free disk space                                                | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.
- 1.1    | https://xvia.jfrog.io/artifactory/xvia-debian                                                                       | X-Road package repository
- 1.2    | https://xvia.jfrog.io/artifactory/api/gpg/key/public                                                                      | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
+ 1.1    | https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local                                                                       | X-Road package repository
+ 1.2    | https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public                                                                      | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
  1.3    |                                                                                                                      | Account name in the user interface
  1.4    | **Inbound ports from external network**                                                                              | Ports for inbound connections from the external network to the security server
  &nbsp; | TCP 5500                                                                                                             | Message exchange between security servers
@@ -265,12 +265,12 @@ Requirements to software and settings:
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 ```bash
-curl -sS https://xvia.jfrog.io/artifactory/api/gpg/key/public | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/xvia.gpg
+curl -sS https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/xvia-debian-local.gpg
 ```
 
 Add X-Road package repository (**reference data: 1.1**)
 ```bash
-sudo apt-add-repository -y "deb https://xvia.jfrog.io/artifactory/xvia-debian $(lsb_release -sc)-current main"
+sudo apt-add-repository -y "deb https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local $(lsb_release -sc)-current main"
 ```
 
 Update package repository metadata:
@@ -644,8 +644,8 @@ The following packages are available in the repository.
 
 ```bash
 root@test-ss:~# apt-cache madison xroad-securityserver
-xroad-securityserver | 7.3.0-1.ubuntu20.04 | https://xvia.jfrog.io/artifactory/xvia-debian focal-current/main amd64 Packages
-xroad-securityserver | 7.1.2-1.ubuntu20.04 | https://xvia.jfrog.io/artifactory/xvia-debian focal-current/main amd64 Packages
+xroad-securityserver | 7.3.0-1.ubuntu20.04 | https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local focal-current/main amd64 Packages
+xroad-securityserver | 7.1.2-1.ubuntu20.04 | https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local focal-current/main amd64 Packages
 ```
 
 Now trying to upgrade the security server packages directly will produce the following error.
@@ -663,7 +663,7 @@ The fix is to upgrade the security server in two separate steps. First, upgrade 
 apt install xroad-securityserver=7.1.2-1.ubuntu20.04 xroad-proxy=7.1.2-1.ubuntu20.04 xroad-monitor=7.1.2-1.ubuntu20.04 xroad-addon-metaservices=7.1.2-1.ubuntu20.04 xroad-addon-messagelog=7.1.2-1.ubuntu20.04 xroad-addon-proxymonitor=7.1.2-1.ubuntu20.04 xroad-addon-wsdlvalidator=7.1.2-1.ubuntu20.04 xroad-proxy-ui-api=7.1.2-1.ubuntu20.04 xroad-confclient=7.1.2-1.ubuntu20.04 xroad-signer=7.1.2-1.ubuntu20.04 xroad-database-local=7.1.2-1.ubuntu20.04 xroad-base=7.1.2-1.ubuntu20.04
 ```
 
-An alternative approach to the previous command is to temporarily configure the server to use a repository that contains only the specific version of X-Road software we want to upgrade to. For example, configure the repository as `deb https://xvia.jfrog.io/artifactory/xvia-debian focal-7.1.2 main` and then use the `apt update` and `apt upgrade xroad-centralserver` commands.
+An alternative approach to the previous command is to temporarily configure the server to use a repository that contains only the specific version of X-Road software we want to upgrade to. For example, configure the repository as `deb https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local focal-7.1.2 main` and then use the `apt update` and `apt upgrade xroad-centralserver` commands.
 
 Finally, we can upgrade to our target version 7.3.x as follows.
 
