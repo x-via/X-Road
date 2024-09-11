@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -88,7 +88,7 @@ public interface ProxyMessageConsumer {
      * @throws Exception if an error occurs
      */
     void attachment(String contentType, InputStream content,
-            Map<String, String> additionalHeaders) throws Exception;
+                    Map<String, String> additionalHeaders) throws Exception;
 
     /***
      * Called when an OCSP response arrives.

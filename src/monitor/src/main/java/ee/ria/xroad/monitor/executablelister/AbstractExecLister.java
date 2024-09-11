@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -50,8 +50,11 @@ import java.util.List;
 abstract class AbstractExecLister<T> {
 
     protected abstract String getCommand();
+
     protected abstract Splitter getParsedDataSplitter();
+
     protected abstract int numberOfColumnsToParse();
+
     protected abstract T parse(List<String> columns);
 
     boolean discardFirstDataLineFromParsed() {

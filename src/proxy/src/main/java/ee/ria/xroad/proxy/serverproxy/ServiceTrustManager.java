@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -54,7 +54,7 @@ class ServiceTrustManager implements X509TrustManager {
     @Override
     public X509Certificate[] getAcceptedIssuers() {
         log.trace("getAcceptedIssuers()");
-        return new X509Certificate[] {};
+        return new X509Certificate[]{};
     }
 
 }

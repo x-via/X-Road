@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -34,25 +34,25 @@ import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.opmonitordaemon.message.ObjectFactory;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.sun.istack.ByteArrayDataSource;
-import com.sun.xml.bind.api.AccessorException;
+import jakarta.activation.DataHandler;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.UnmarshalException;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.ValidationEvent;
+import jakarta.xml.bind.attachment.AttachmentMarshaller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.glassfish.jaxb.runtime.api.AccessorException;
 import org.xml.sax.SAXException;
 
-import javax.activation.DataHandler;
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.UnmarshalException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.ValidationEvent;
-import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -61,7 +61,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.zip.GZIPOutputStream;
@@ -79,7 +78,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODIN
 abstract class QueryRequestHandler {
 
     static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
-    static final Gson GSON = JsonUtils.getSerializer();
+    static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
 
     private static final JAXBContext JAXB_CTX = initJaxbCtx();
     private static final Schema OP_MONITORING_SCHEMA = createSchema();
@@ -93,7 +92,7 @@ abstract class QueryRequestHandler {
      * is available (before writing to output stream)
      */
     abstract void handle(SoapMessageImpl requestSoap, OutputStream out,
-            Consumer<String> contentTypeCallback) throws Exception;
+                         Consumer<String> contentTypeCallback) throws Exception;
 
     private static JAXBContext initJaxbCtx() {
         try {
@@ -108,7 +107,6 @@ abstract class QueryRequestHandler {
         try {
             final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
             factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "file,jar:file");
             return factory.newSchema(ResourceUtils.getClasspathResource("op-monitoring.xsd"));
         } catch (SAXException e) {
@@ -142,7 +140,7 @@ abstract class QueryRequestHandler {
 
     @SuppressWarnings("unchecked")
     static <T> T getRequestData(SoapMessageImpl requestSoap,
-            Class<?> clazz) throws Exception {
+                                Class<?> clazz) throws Exception {
         Unmarshaller unmarshaller = createUnmarshaller(clazz);
 
         try {
@@ -156,7 +154,7 @@ abstract class QueryRequestHandler {
 
     static SoapMessageImpl createResponse(
             SoapMessageImpl requestMessage, JAXBElement<?> jaxbElement)
-                    throws Exception {
+            throws Exception {
         return createResponse(requestMessage, createMarshaller(), jaxbElement);
     }
 
@@ -228,7 +226,7 @@ abstract class QueryRequestHandler {
         private final Map<String, DataHandler> attachments = new HashMap<>();
 
         void encodeAttachments() throws Exception {
-            for (Entry<String, DataHandler> attach : attachments.entrySet()) {
+            for (Map.Entry<String, DataHandler> attach : attachments.entrySet()) {
                 responseEncoder.attachment(attach.getValue().getContentType(),
                         attach.getValue().getInputStream(),
                         getAdditionalAttachmentHeaders(attach.getKey()));
@@ -250,15 +248,15 @@ abstract class QueryRequestHandler {
 
         @Override
         public String addMtomAttachment(DataHandler data,
-                String elementNamespace, String elementLocalName) {
+                                        String elementNamespace, String elementLocalName) {
             // not using MTOM attachments
             return null;
         }
 
         @Override
         public String addMtomAttachment(byte[] data, int offset, int length,
-                String mimeType, String elementNamespace,
-                String elementLocalName) {
+                                        String mimeType, String elementNamespace,
+                                        String elementLocalName) {
             // not using MTOM attachments
             return null;
         }

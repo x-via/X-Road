@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -155,7 +155,7 @@ public class MessageBodyManipulator {
      * @param searched collection to search from
      * @return true if ClientId is in the collection
      */
-    public boolean isClientInCollection(ClientId searchParam, Iterable<ClientId> searched) {
+    public boolean isClientInCollection(ClientId searchParam, Iterable<? extends ClientId> searched) {
         ClientId searchResult = Iterables.find(searched,
                 input -> (input.memberEquals(searchParam)
                         && Objects.equals(input.getSubsystemCode(), searchParam.getSubsystemCode())), null);

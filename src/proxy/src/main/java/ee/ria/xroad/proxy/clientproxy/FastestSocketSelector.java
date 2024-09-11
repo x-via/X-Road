@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -89,6 +89,7 @@ final class FastestSocketSelector {
             case 1:
                 return connect(timeout);
             default:
+                log.info("Selecting the fastest connection from following addresses: {}", addresses);
                 return doSelect(timeout);
         }
     }
@@ -104,7 +105,6 @@ final class FastestSocketSelector {
             return new SocketInfo(uri, socket);
         } catch (Exception e) {
             addresses.remove(uri);
-            log.error("Could not connect to '{}'", uri, e);
             closeQuietly(socket);
             throw e;
         }
@@ -116,10 +116,10 @@ final class FastestSocketSelector {
         try {
             initConnections(selector);
             SelectionKey key = selectFirstConnectedSocketChannel(selector, timeout);
-            final SocketChannel channel = (SocketChannel)key.channel();
+            final SocketChannel channel = (SocketChannel) key.channel();
             key.cancel();
             channel.configureBlocking(true);
-            return new SocketInfo((URI)key.attachment(), channel.socket());
+            return new SocketInfo((URI) key.attachment(), channel.socket());
         } finally {
             try {
                 closeSelector(selector);
@@ -151,7 +151,7 @@ final class FastestSocketSelector {
 
     private boolean isConnected(SelectionKey key) {
         if (key.isValid() && key.isConnectable()) {
-            SocketChannel channel = (SocketChannel)key.channel();
+            SocketChannel channel = (SocketChannel) key.channel();
             try {
                 return channel.finishConnect();
             } catch (Exception e) {
@@ -168,7 +168,7 @@ final class FastestSocketSelector {
     private void initConnections(Selector selector) {
         log.trace("initConnections()");
 
-        for (Iterator<URI> iterator = addresses.iterator(); iterator.hasNext();) {
+        for (Iterator<URI> iterator = addresses.iterator(); iterator.hasNext(); ) {
             final URI target = iterator.next();
             final InetSocketAddress address = new InetSocketAddress(target.getHost(), target.getPort());
             if (address.isUnresolved()) {

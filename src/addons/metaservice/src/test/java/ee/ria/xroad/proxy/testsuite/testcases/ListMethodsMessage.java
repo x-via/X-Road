@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -36,7 +36,7 @@ import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
-import javax.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPBody;
 
 import java.util.Arrays;
 import java.util.List;
@@ -61,10 +61,10 @@ public class ListMethodsMessage extends MessageTestCase {
     }
 
     // this is the service provider we want the methods listed from, it's from the query file
-    private final ClientId expectedClientId =
-            ClientId.create("EE", "BUSINESS", "producer", "SUB");
+    private final ClientId.Conf expectedClientId =
+            ClientId.Conf.create("EE", "BUSINESS", "producer", "SUB");
 
-    private final List<ServiceId> expectedServices = Arrays.asList(
+    private final List<ServiceId.Conf> expectedServices = Arrays.asList(
             MetaserviceTestUtil.createService("getRandom"),
             MetaserviceTestUtil.createService("helloService"),
             MetaserviceTestUtil.createService("ListMembers"));
@@ -80,7 +80,7 @@ public class ListMethodsMessage extends MessageTestCase {
         // even though the MetadataServiceHandler uses the same MimeUtils value
         List<String> expectedContentTypes = MetaserviceTestUtil.xmlUtf8ContentTypes();
 
-        List<ServiceId> resultServices = verifyAndGetSingleBodyElementOfType(body, MethodListType.class).getService();
+        List<ServiceId.Conf> resultServices = verifyAndGetSingleBodyElementOfType(body, MethodListType.class).getService();
 
         assertThat("Wrong amount of services",
                 resultServices.size(), is(expectedServices.size()));
@@ -96,8 +96,8 @@ public class ListMethodsMessage extends MessageTestCase {
 
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
-            public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider,
-                                                                DescriptionType descriptionType) {
+            public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
+                                                                     DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClientId));
                 return expectedServices;
             }

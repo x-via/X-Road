@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -43,6 +43,7 @@ import static org.junit.Assert.assertTrue;
 public class AntiDosConnectionManagerTest {
 
     private static final Set<String> KNOWN_ADDRESSES = new HashSet<>();
+
     static {
         KNOWN_ADDRESSES.add("test1");
         KNOWN_ADDRESSES.add("test2");
@@ -161,7 +162,7 @@ public class AntiDosConnectionManagerTest {
 
     private static TestConnectionManager createConnectionManager(
             TestConfiguration configuration, TestSystemMetrics systemMetrics)
-                throws Exception {
+            throws Exception {
         TestConnectionManager connectionManager =
                 new TestConnectionManager(configuration, systemMetrics);
         connectionManager.init();

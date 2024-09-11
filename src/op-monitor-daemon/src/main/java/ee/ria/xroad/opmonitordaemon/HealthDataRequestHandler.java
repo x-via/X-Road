@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -40,12 +40,11 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
+import jakarta.xml.bind.JAXBElement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.xml.bind.JAXBElement;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.OutputStream;
 import java.util.Map.Entry;
@@ -85,15 +84,15 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
 
     @Override
     public void handle(SoapMessageImpl requestSoap, OutputStream out,
-            Consumer<String> contentTypeCallback) throws Exception {
+                       Consumer<String> contentTypeCallback) throws Exception {
         log.trace("handle()");
 
-        ClientId clientId = requestSoap.getClient();
+        ClientId.Conf clientId = requestSoap.getClient();
         GetSecurityServerHealthDataType requestData = getRequestData(
                 requestSoap, GetSecurityServerHealthDataType.class);
 
-        Optional<ClientId> provider = Optional.ofNullable(
-                requestData.getFilterCriteria())
+        Optional<ClientId.Conf> provider = Optional.ofNullable(
+                        requestData.getFilterCriteria())
                 .map(FilterCriteriaType::getClient);
 
         log.debug("Handle getSecurityServerHealthData: clientId: {}, "
@@ -108,7 +107,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
 
     @SuppressWarnings("unchecked")
     private JAXBElement<?> buildHealthDataResponse(
-            Optional<ClientId> provider) throws Exception {
+            Optional<ClientId.Conf> provider) throws Exception {
         GetSecurityServerHealthDataResponseType healthDataResponse =
                 OBJECT_FACTORY.createGetSecurityServerHealthDataResponseType();
 
@@ -139,7 +138,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
                 + " in health metrics registry!");
     }
 
-    private Stream<ServiceId> servicesWithAvailableMetrics() {
+    private Stream<ServiceId.Conf> servicesWithAvailableMetrics() {
         return healthMetricRegistry.getMetrics().entrySet().stream()
                 .map(HealthDataRequestHandler::extractIdentifier)
                 .filter(Objects::nonNull)
@@ -148,7 +147,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
     }
 
     private ServicesEventsType buildServicesEvents(
-            Optional<ClientId> provider) {
+            Optional<ClientId.Conf> provider) {
         ServicesEventsType servicesEvents =
                 OBJECT_FACTORY.createServicesEventsType();
 
@@ -164,7 +163,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
     }
 
     @SuppressWarnings("unchecked")
-    private ServiceEventsType buildServiceEvents(ServiceId service) {
+    private ServiceEventsType buildServiceEvents(ServiceId.Conf service) {
         ServiceEventsType serviceEvents =
                 OBJECT_FACTORY.createServiceEventsType();
 
@@ -266,7 +265,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
         return serviceName;
     }
 
-    private static ServiceId convertIdentifier(String id) {
+    private static ServiceId.Conf convertIdentifier(String id) {
         // Construct a valid service identifier so we can compare it's
         // provider to the optionally provided exchange partner's client ID
         String[] idParts = id.split(IDENTIFIER_SEPARATOR,
@@ -281,12 +280,12 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
         }
 
         return idParts.length > SERVICE_ID_NUM_PARTS - 1
-                ? ServiceId.create(idParts[0], idParts[1], idParts[2],
-                        idParts[SERVICE_ID_SUBSYSTEM_PART],
-                        idParts[SERVICE_ID_CODE_PART],
-                        idParts[SERVICE_ID_VERSION_PART])
-                : ServiceId.create(idParts[0], idParts[1], idParts[2],
-                        idParts[SERVICE_ID_SUBSYSTEM_PART],
-                        idParts[SERVICE_ID_CODE_PART]);
+                ? ServiceId.Conf.create(idParts[0], idParts[1], idParts[2],
+                idParts[SERVICE_ID_SUBSYSTEM_PART],
+                idParts[SERVICE_ID_CODE_PART],
+                idParts[SERVICE_ID_VERSION_PART])
+                : ServiceId.Conf.create(idParts[0], idParts[1], idParts[2],
+                idParts[SERVICE_ID_SUBSYSTEM_PART],
+                idParts[SERVICE_ID_CODE_PART]);
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -26,16 +26,20 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.clientproxy.AsicContainerClientRequestProcessor;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.bouncycastle.bcpg.BCPGInputStream;
 import org.bouncycastle.bcpg.PacketTags;
 import org.bouncycastle.bcpg.PublicKeyEncSessionPacket;
+import org.eclipse.jetty.http.HttpURI;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
@@ -44,15 +48,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -63,6 +65,7 @@ import static ee.ria.xroad.proxy.messagelog.TestUtil.cleanUpDatabase;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createRestRequest;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.initForTest;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -74,11 +77,37 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
     @Parameterized.Parameters(name = "encrypted = {0}")
     public static Object[] params() {
-        return new Object[] {Boolean.FALSE, Boolean.TRUE};
+        return new Object[]{Boolean.FALSE, Boolean.TRUE};
     }
 
     @Parameterized.Parameter(0)
     public boolean encrypted;
+
+    @Test
+    public void assertVerificationConfiguration() throws IOException {
+        final var request = mock(RequestWrapper.class);
+        final var response = mock(ResponseWrapper.class);
+
+        final MockOutputStream mockOutputStream = new MockOutputStream();
+
+        final AsicContainerClientRequestProcessor proc = new AsicContainerClientRequestProcessor(
+                "/verificationconf", request, response);
+
+        when(response.getOutputStream()).thenReturn(mockOutputStream);
+
+        proc.process();
+
+
+        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(mockOutputStream.bos.toByteArray()))) {
+            ZipEntry entry = zip.getNextEntry();
+            assertEquals("verificationconf/CS/shared-params.xml", entry.getName());
+            assertArrayEquals(Files.readAllBytes(Path.of("src/test/resources/globalconf/CS/shared-params.xml")), zip.readAllBytes());
+
+            entry = zip.getNextEntry();
+            assertEquals("verificationconf/CS/shared-params.xml.metadata", entry.getName());
+            assertArrayEquals("{\"configurationVersion\":\"3\"}".getBytes(), zip.readAllBytes());
+        }
+    }
 
     @Test
     public void downloadAsicContainer() throws Exception {
@@ -94,14 +123,16 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         startTimestamping();
         waitForTimestampSuccessful();
 
-        final HttpServletRequest request = mock(HttpServletRequest.class);
+        final var request = mock(RequestWrapper.class);
+        final var httpURI = mock(HttpURI.class);
+        when(request.getHttpURI()).thenReturn(httpURI);
         when(request.getParameter(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
         when(request.getParameter(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
         when(request.getParameter(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
         when(request.getParameter(Mockito.eq("subsystemCode"))).thenReturn(message.getClientId().getSubsystemCode());
         when(request.getParameter(Mockito.eq("queryId"))).thenReturn(queryId);
 
-        final HttpServletResponse response = mock(HttpServletResponse.class);
+        final var response = mock(ResponseWrapper.class);
 
         final MockOutputStream mockOutputStream = new MockOutputStream();
         when(response.getOutputStream()).thenReturn(mockOutputStream);
@@ -110,6 +141,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
                 new AsicContainerClientRequestProcessor("/asic", request, response);
 
         processor.process();
+
 
         if (encrypted) {
             // sanity check, we are excepting a gpg encrypted archive
@@ -146,15 +178,17 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         params.put("unique", null);
         params.put("requestOnly", null);
 
-        final HttpServletRequest request = mock(HttpServletRequest.class);
+        final var request = mock(RequestWrapper.class);
+        final var httpURI = mock(HttpURI.class);
+        when(request.getHttpURI()).thenReturn(httpURI);
         when(request.getParameter(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
         when(request.getParameter(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
         when(request.getParameter(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
         when(request.getParameter(Mockito.eq("subsystemCode"))).thenReturn(message.getClientId().getSubsystemCode());
         when(request.getParameter(Mockito.eq("queryId"))).thenReturn(queryId);
-        when(request.getParameterMap()).thenReturn(params);
+        when(request.getParametersMap()).thenReturn(params);
 
-        final HttpServletResponse response = mock(HttpServletResponse.class);
+        final var response = mock(ResponseWrapper.class);
 
         final MockOutputStream mockOutputStream = new MockOutputStream();
         when(response.getOutputStream()).thenReturn(mockOutputStream);
@@ -192,19 +226,9 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         }
     }
 
-    static class MockOutputStream extends ServletOutputStream {
+    static class MockOutputStream extends OutputStream {
 
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
-        @Override
-        public boolean isReady() {
-            return true;
-        }
-
-        @Override
-        public void setWriteListener(WriteListener writeListener) {
-            throw new IllegalStateException();
-        }
 
         @Override
         public void write(byte[] b, int off, int len) {
@@ -219,6 +243,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
     @Before
     public void setUp() throws Exception {
+        System.setProperty(SystemProperties.CONFIGURATION_PATH, "src/test/resources/globalconf");
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, "false");
         System.setProperty(MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1800");
         System.setProperty(MessageLogProperties.ARCHIVE_INTERVAL, "0 0 0 1 1 ? 2099");
@@ -248,6 +273,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
     /**
      * Cleanup test environment for other tests.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @After

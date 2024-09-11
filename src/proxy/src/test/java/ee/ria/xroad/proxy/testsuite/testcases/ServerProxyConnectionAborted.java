@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -82,7 +82,7 @@ public class ServerProxyConnectionAborted extends MessageTestCase {
         assertErrorCode(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
     }
 
-    private class AbortingServer implements Runnable {
+    private static final class AbortingServer implements Runnable {
         @Override
         public void run() {
             try {
@@ -91,19 +91,15 @@ public class ServerProxyConnectionAborted extends MessageTestCase {
 
                 LOG.debug("Starting to listen at 127.0.0.3:{}", port);
 
-                ServerSocket srvr = new ServerSocket(port, 1,
-                        InetAddress.getByName("127.0.0.3"));
-                Socket skt = srvr.accept();
+                try (ServerSocket srvr = new ServerSocket(port, 1, InetAddress.getByName("127.0.0.3")); Socket skt = srvr.accept()) {
+                    LOG.debug("Received connection from {}", skt.getRemoteSocketAddress());
 
-                LOG.debug("Received connection from {}",
-                        skt.getRemoteSocketAddress());
-
-                // Read something.
-                skt.getInputStream().read(buffer);
-                skt.getInputStream().close();
-                skt.close();
-                srvr.close();
-                LOG.debug("Closing the test socket");
+                    // Read something.
+                    skt.getInputStream().read(buffer);
+                    //abort connection
+                    LOG.debug("Closing the test socket");
+                    skt.setSoLinger(true, 0);
+                }
             } catch (Exception ex) {
                 LOG.debug("Aborting server failed", ex);
             }

@@ -1,5 +1,7 @@
 {
   "ignore": [
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
     "build/",
     "build.gradle",
     ".gradle",
@@ -18,7 +20,10 @@
     "src/openapi-types/",
     "**/openapi-types.ts",
     "scripts/dtsgen-wrapper.js",
-    "tests/unit/__snapshots__"
+    "tests/unit/__snapshots__",
+    "build.gradle",
+    "build/**",
+    ".gradle/**"
   ],
   "license": "LICENSE.txt",
   "licenseFormats": {

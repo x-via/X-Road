@@ -1,20 +1,22 @@
 # X-Road: Environmental Monitoring Architecture
 
-Version: 1.8  
+Version: 1.11  
 Doc. ID: ARC-ENVMON
 
-| Date       | Version  | Description                                                                  | Author             |
-|------------|----------|------------------------------------------------------------------------------|--------------------|
-| 15.12.2015 | 1.0      | Initial version               | Ilkka Seppälä         |
-| 04.01.2017 | 1.1      | Fix documentation links | Ilkka Seppälä         |
-| 20.01.2017 | 1.2      | Added license text, table of contents and version history | Sami Kallio |
-| 23.2.2017  | 1.3      | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren |
-| 18.8.2017  | 1.4      | Added details about the security server certificates monitoring data | Olli Lindgren |
-| 18.10.2017 | 1.5      |  | Joni Laurila |
-| 02.03.2018 | 1.6      | Added numbering, terms document references, removed unnecessary anchors | Tatu Repo
-| 20.01.2020 | 1.7      | Update XroadProcessLister description | Jarkko Hyöty
-| 25.06.2020 | 1.8      | Add chapter [2.2.1 JMX interface](#221-jmx-interface)| Petteri Kivimäki
-
+| Date       | Version | Description                                                                                                     | Author            |
+|------------|---------|-----------------------------------------------------------------------------------------------------------------|-------------------|
+| 15.12.2015 | 1.0     | Initial version                                                                                                 | Ilkka Seppälä     |
+| 04.01.2017 | 1.1     | Fix documentation links                                                                                         | Ilkka Seppälä     |
+| 20.01.2017 | 1.2     | Added license text, table of contents and version history                                                       | Sami Kallio       |
+| 23.2.2017  | 1.3     | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren     |
+| 18.8.2017  | 1.4     | Added details about the security server certificates monitoring data                                            | Olli Lindgren     |
+| 18.10.2017 | 1.5     |                                                                                                                 | Joni Laurila      |
+| 02.03.2018 | 1.6     | Added numbering, terms document references, removed unnecessary anchors                                         | Tatu Repo         |
+| 20.01.2020 | 1.7     | Update XroadProcessLister description                                                                           | Jarkko Hyöty      |
+| 25.06.2020 | 1.8     | Add chapter [2.2.1 JMX interface](#221-jmx-interface)                                                           | Petteri Kivimäki  |
+| 01.06.2023 | 1.9     | Update references                                                                                               | Petteri Kivimäki  |
+| 04.10.2023 | 1.10    | Remove Akka references                                                                                          | Ričardas Bučiūnas |
+| 16.02.2024 | 1.11    | Add information about JMX and authentication                                                                    | Petteri Kivimäki  |
 
 # Table of Contents
 <!-- toc -->
@@ -60,9 +62,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 | Document ID||
 | ------------- |-------------|
-| PR-GCONF      | [Cybernetica AS. X-Road: Protocol for Downloading Configuration](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md) |
-| UC-GCONF      | [Cybernetica AS. X-Road: Use Case Model for Global Configuration Distribution](../UseCases/uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md)|
-| PR-MESS | [Cybernetica AS.X-Road: Message Protocol v4.0](../Protocols/pr-mess_x-road_message_protocol.md)      |
+| PR-GCONF      | [X-Road: Protocol for Downloading Configuration](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md) |
+| UC-GCONF      | [X-Road: Use Case Model for Global Configuration Distribution](../UseCases/uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md)|
+| PR-MESS | [X-Road: Message Protocol v4.0](../Protocols/pr-mess_x-road_message_protocol.md)      |
 | PR-TARGETSS | [Security Server targeting extension for the X-Road message protocol](../Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md) |
 | <a id="Ref_TERMS" class="anchor"></a> TA-TERMS | [X-Road Terms and Abbreviations](../terms_x-road_docs.md)| 
 
@@ -72,7 +74,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 2.1 Monitoring metaservice (proxymonitor add-on)
 
-Monitoring metaservice responds to queries for monitoring data from security server's serverproxy interface. This metaservice requests the current monitoring data from local monitoring service, using [Akka](http://akka.io/). Monitoring metaservice translates the monitoring data to a SOAP XML response.
+Monitoring metaservice responds to queries for monitoring data from security server's serverproxy interface. This metaservice requests the current monitoring data from local monitoring service, using [gRPC](https://grpc.io/). Monitoring metaservice translates the monitoring data to a SOAP XML response.
 
 Monitoring service handles authorization of the requests, see [Access control](#33-access-control). It reads monitoring configuration from distributed global monitoring configuration (see [UC-GCONF, PR-GCONF](#12-references)).
 
@@ -80,7 +82,7 @@ Monitoring metaservice is installed as a proxy add-on, with name `xroad-addon-pr
 
 ### 2.2 Monitoring service (xroad-monitor)
 
-Monitoring service is responsible for collecting the monitoring data from one security server instance. It distributes the collected data to monitoring clients (normally the local monitoring metaservice) when requested through an Akka interface.
+Monitoring service is responsible for collecting the monitoring data from one security server instance. It distributes the collected data to monitoring clients (normally the local monitoring metaservice) when requested through an gRPC interface.
 
 Monitoring service uses several _sensors_ to collect the data. Sensors and related functionalities are build on top of [Dropwizard Metrics](https://github.com/dropwizard/metrics).
 
@@ -136,11 +138,13 @@ The service also publishes the monitoring data via JMX. Local monitoring agents 
 
 JMX is enabled by adding the required configuration in `/etc/xroad/services/local.properties` file. The file is opened for editing and changes are made on the `XROAD_MONITOR_PARAMS` variable value. After the `XROAD_MONITOR_PARAMS` variable value has been updated, the `xroad-monitor` service must be restarted.
 
-The example configuration below enables JMX, binds it to port `9999` on any available interface with SSL and password authentication enabled:
+The example configuration below enables JMX, binds it to port `9999` on any available interface with SSL and password authentication enabled, and defines the password file location (`/path/to/password/file.txt`):
 
 ```properties
-XROAD_MONITOR_PARAMS=-Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.authenticate=true -Dcom.sun.management.jmxremote.ssl=true
+XROAD_MONITOR_PARAMS=-Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.authenticate=true -Dcom.sun.management.jmxremote.password.file=/path/to/password/file.txt -Dcom.sun.management.jmxremote.ssl=true
 ```
+
+**Note:** The password file must be owned and readable by the `xroad` user only. More information about different authentication alternatives is available [here](https://docs.oracle.com/en/java/javase/17/management/monitoring-and-management-using-jmx-technology.html#GUID-2F341A54-B0B0-4268-BDD7-5CFAB52A6C90). 
 
 ### 2.3 Central monitoring client
 
