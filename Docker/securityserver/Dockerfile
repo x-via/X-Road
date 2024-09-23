@@ -25,7 +25,7 @@ RUN apt-get -qq update \
 # Xroad SS from external packages
 FROM base AS securityserver-external
 
-ARG DIST=jammy-snapshot
+ARG DIST=jammy-current
 ARG REPO=https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local
 ARG REPO_KEY=https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public
 ARG COMPONENT=main
