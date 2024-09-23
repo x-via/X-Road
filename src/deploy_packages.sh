@@ -14,8 +14,8 @@ showHelp() {
 		echo "Uso: $0 [argumentos]"
 		echo ""
 		echo "Argumentos para $0:"
-		echo " -u, --ubuntu       Informe a versão do Ubuntu, valores disponíveis: 20 e 22. Ex.: $0 -u 20 ou $0 --ubuntu 20"
-		echo " -rhel, --redhat    Informe a versão do Red Hat, valores disponíveis: 7 e 8. Ex.: $0 -rhel 8 ou $0 --redhat 8"
+		echo " -u, --ubuntu       Informe a versão do Ubuntu, valores disponíveis: 20, 22 e 24. Ex.: $0 -u 20 ou $0 --ubuntu 20"
+		echo " -rhel, --redhat    Informe a versão do Red Hat, valores disponíveis: 7, 8 e 9. Ex.: $0 -rhel 8 ou $0 --redhat 8"
 		echo " -h, --help         Informações de ajuda e dos argumentos."
 }
 
@@ -36,6 +36,10 @@ else
 							UPLOAD_UBUNTU=true
 							UBUNTU_VERSION="ubuntu22.04"
 							UBUNTU_RELEASE_NAME="jammy-$UBUNTU_RELEASE_NAME"
+            			elif [ "$1" = "24" ] || [ "$1" = "24.04" ]; then
+							UPLOAD_UBUNTU=true
+							UBUNTU_VERSION="ubuntu24.04"
+							UBUNTU_RELEASE_NAME="jammy-$UBUNTU_RELEASE_NAME"
 						else
 							echo "*** Erro: A versão \"$1\" do Ubuntu informada é inválida, digite $0 -h para obter ajuda." 1>&2
 							exit 1
@@ -49,8 +53,11 @@ else
 						elif [ "$1" = "8" ]; then
 							UPLOAD_REDHAT=true
 							REDHAT_VERSION="8"
+						elif [ "$1" = "9" ]; then
+							UPLOAD_REDHAT=true
+							REDHAT_VERSION="9"
 						else
-							echo "*** Erro: A versão \"$1\" do Ubuntu informada é inválida, digite $0 -h para obter ajuda." 1>&2
+							echo "*** Erro: A versão \"$1\" do Red Hat informada é inválida, digite $0 -h para obter ajuda." 1>&2
 							exit 1
 						fi
 						;;
