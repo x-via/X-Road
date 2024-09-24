@@ -26,25 +26,35 @@
  */
 import { createI18n } from 'vue-i18n';
 import veeEn from '@vee-validate/i18n/dist/locale/en.json';
+import veePt from '@vee-validate/i18n/dist/locale/pt_BR.json';
 import en from '@/locales/en.json';
+import pt from '@/locales/pt.json';
 import merge from 'deepmerge';
 
 import { messages } from '@niis/shared-ui';
 
 const validation = { validation: veeEn };
+const validationPt = { validation: veePt };
 
 type Shared = typeof messages.en;
-type Vee = typeof validation;
+type Vee = typeof validation | typeof validationPt;
 type En = typeof en;
 export type MessageSchema = Vee & Shared & En;
 
 let common = merge(validation, messages.en);
+let commonPt = merge(validationPt, messages.pt);
+
 common = merge(common, en);
-export const i18n = createI18n<[MessageSchema], 'en'>({
+commonPt = merge(commonPt, pt);
+
+export const i18n = createI18n<[MessageSchema], 'en' | 'pt'>({
   legacy: false,
   locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
   fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
   silentFallbackWarn: true,
   allowComposition: true,
-  messages: { en: common as MessageSchema },
+  messages: {
+    en: common as MessageSchema,
+    pt: commonPt as MessageSchema,
+  },
 });

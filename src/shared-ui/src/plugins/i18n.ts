@@ -27,17 +27,18 @@
 import { createI18n } from 'vue-i18n';
 
 import en from '../locales/en.json';
+import pt from '../locales/pt.json';
 
 type MessageSchema = typeof en;
 
 
-export default createI18n<[MessageSchema], 'en'>({
+export default createI18n<[MessageSchema], 'en' | 'pt'>({
     legacy: false,
     locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
     fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
     silentFallbackWarn: true,
     allowComposition: true,
-    messages: { en },
+    messages: { en, pt },
 });
 
 
