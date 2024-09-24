@@ -30,7 +30,7 @@
     "ok": "OK",
     "previous": "Anterior",
     "refresh": "Atualizar",
-    "register": "Cadastrar",
+    "register": "Registrar",
     "remove": "Remover",
     "removeAll": "Remover tudo",
     "save": "Salvar",
@@ -42,7 +42,7 @@
     "generateCsr": "Gerar CSR"
   },
   "alert": {
-    "count": "Quantidade de erros semelhantes:",
+    "count": "Quantidade dos mesmos erros:",
     "id": "ID"
   },
   "apiKey": {
@@ -181,7 +181,7 @@
     "management_request_unknown_type": "Tipo de solicitação desconhecido",
     "management_service_provider_not_set": "Provedor de serviços de gerenciamento não definido",
     "member_class_exists": "Já existe uma classe de membro com o mesmo código.",
-    "member_class_is_in_use": "Não é possível excluir a classe de membro: foram encontrados membros do X-Via pertencentes à classe. ",
+    "member_class_is_in_use": "Não é possível excluir a classe de membro: foram encontrados membros do X-Via pertencentes à classe. Somente classes sem membros registrados podem ser excluídas.",
     "member_class_not_found": "Nenhuma classe de membro com o código especificado foi encontrada.",
     "member_exists": "Já existe membro com o mesmo código.",
     "member_not_found": "Nenhum membro com o código/id especificado foi encontrado.",
@@ -340,7 +340,7 @@
     "navigation": {
       "back": "Voltar"
     },
-    "register": "Cadastrar",
+    "register": "Registrar",
     "search": "Buscar",
     "server": "Servidor",
     "status": "Status",
@@ -472,7 +472,7 @@
         "title": "Adicionar chave",
         "labelField": "Nome amigável da chave",
         "confirmButton": "Adicionar",
-        "success": "Chave de assinatura '{label}' adicionada com sucesso. "
+        "success": "Chave de assinatura '{label}' adicionada com sucesso. Por favor, não ative a chave imediatamente. Por favor, veja o guia do usuário do Servidor Central antes de ativar a chave."
       },
       "activate": {
         "title": "Ativar chave",
@@ -521,7 +521,7 @@
   },
   "login": {
     "errorMsg401": "Nome de usuário ou senha errados",
-    "generalError": "Falha no login. ",
+    "generalError": "Falha no login. Tente novamente.",
     "logIn": "Entrar",
     "logOut": "Sair"
   },
@@ -583,7 +583,7 @@
     "ca": "AC",
     "serialNumber": "Número de série",
     "subject": "Assunto",
-    "expires": "Expira"
+    "expires": "Expira em"
   },
   "members": {
     "addMember": "Adicionar membro",
@@ -654,7 +654,7 @@
     "securityServer": {
       "certificationAuthority": "Autoridade Certificadora",
       "deleteServer": "Excluir servidor",
-      "expires": "Expira",
+      "expires": "Expira em",
       "serialNumber": "Número de série",
       "subject": "Assunto",
       "deleteSecurityServer": "Excluir servidor seguro",
