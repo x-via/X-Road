@@ -1,0 +1,72 @@
+{
+  "locals_demo": "Isto está localizado na biblioteca",
+  "type": "Tipo",
+  "warning": "Aviso",
+  "fields": {
+    "password": "Senha",
+    "username": "LIB-Usuário",
+    "shared": "sharedlib",
+    "code": "Código",
+    "description": "Descrição"
+  },
+  "action": {
+    "cancel": "Cancelar",
+    "add": "Adicionar",
+    "yes": "Sim",
+    "delete": "Excluir",
+    "download": "Download",
+    "upload": "Carregar",
+    "restore": "Restaurar"
+  },
+  "noData": {
+    "noMatches": "Nenhum item corresponde aos critérios",
+    "loading": "Carregando... Aguarde"
+  },
+  "keys": {
+    "gotIt": "Entendi"
+  },
+  "global": {
+    "all": "Todos",
+    "name": "Nome"
+  },
+  "backup": {
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "Tem certeza de que deseja excluir o backup {file}?",
+        "title": "Tem certeza?"
+      },
+      "success": "Backup {file} excluído"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "Tem certeza de que deseja restaurar de {file}?",
+        "title": "Tem certeza?"
+      },
+      "success": "Configuração restaurada de {file}"
+    },
+    "createBackup": {
+      "button": "Criar backup",
+      "messages": {
+        "success": "Backup {file} criado com sucesso",
+        "localConfWarning": "Aviso! O arquivo “/etc/xroad/services/local.conf” usado para substituições de configuração está obsoleto e não está mais incluído nos backups. O arquivo “/etc/xroad/services/local.properties” deve ser usado no lugar."
+      }
+    },
+    "uploadBackup": {
+      "button": "Enviar backup",
+      "confirmationDialog": {
+        "confirmation": "O arquivo {name} já existe. Tem certeza de que deseja substituí-lo?",
+        "title": "O arquivo já existe"
+      },
+      "success": "Backup {file} enviado com sucesso"
+    }
+  },
+  "validationError": {
+    "ValidHostAddress": "É necessário um nome de domínio totalmente qualificado válido (por exemplo, host.example.org) ou endereço IP público (por exemplo, 192.168.123.123)",
+    "ValidHostAddressField": "É necessário um endereço IP válido ou um nome de domínio totalmente qualificado"
+  },
+  "validation": {
+    "messages": {
+      "address": "O campo {field} contém caracteres inválidos"
+    }
+  }
+}

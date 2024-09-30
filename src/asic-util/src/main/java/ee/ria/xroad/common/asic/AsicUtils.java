@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -49,7 +49,7 @@ public final class AsicUtils {
     @SneakyThrows
     public static String escapeString(String str) {
         String urlEncoded =
-                URLEncoder.encode(str, StandardCharsets.UTF_8.name());
+                URLEncoder.encode(str, StandardCharsets.UTF_8);
         return urlEncoded.replace("/", "%2F");
     }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -90,7 +90,7 @@ public final class PathGlob {
                     final int lookup = cursor.peek();
                     if (lookup == '*' || lookup == '\\') {
                         b.append('\\');
-                        b.append((char)lookup);
+                        b.append((char) lookup);
                         cursor.skip();
                     } else {
                         b.append("\\\\");

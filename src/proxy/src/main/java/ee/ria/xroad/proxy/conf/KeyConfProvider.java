@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -81,7 +81,7 @@ public interface KeyConfProvider {
      * @throws Exception in case of any errors
      */
     void setOcspResponses(List<X509Certificate> certs,
-            List<OCSPResp> responses) throws Exception;
+                          List<OCSPResp> responses) throws Exception;
 
     /**
      * Cleans up any resources hold by KeyConf Provider

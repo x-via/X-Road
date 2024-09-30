@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -206,7 +206,7 @@ final class AsicHelper {
     }
 
     private static void verifyHashChainEntries(String hashChainResultEntryName, String hashChainResult,
-            String hashChainEntryName, String hashChain) {
+                                               String hashChainEntryName, String hashChain) {
         if (isBlank(hashChainResult) && isBlank(hashChain)) {
             return;
         }

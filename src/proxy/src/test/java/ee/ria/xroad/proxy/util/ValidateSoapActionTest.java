@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -50,7 +50,7 @@ public class ValidateSoapActionTest {
      */
     @Parameters(name = "{index}: <{0}>, valid: {1}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
+        return Arrays.asList(new Object[][]{
                 {null, true},
                 {"", true},
                 {"\"\"", true},

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,28 +28,21 @@ package ee.ria.xroad.proxy.serverproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.monitoring.MessageInfo;
-import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
-import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.common.util.PerformanceLogger;
-import ee.ria.xroad.proxy.ProxyMain;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
+import ee.ria.xroad.proxy.util.PerformanceLogger;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
 import java.io.IOException;
-import java.security.cert.X509Certificate;
-import java.util.Date;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
@@ -58,11 +51,10 @@ import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerTy
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.eclipse.jetty.server.Request.getRemoteAddr;
 
 @Slf4j
 class ServerProxyHandler extends HandlerBase {
-
-    private static final String UNKNOWN_VERSION = "unknown";
 
     private final HttpClient client;
     private final HttpClient opMonitorClient;
@@ -74,15 +66,14 @@ class ServerProxyHandler extends HandlerBase {
     }
 
     @Override
-    public void handle(String target, Request baseRequest, final HttpServletRequest request,
-            final HttpServletResponse response) throws IOException, ServletException {
+    public boolean handle(Request request, Response response, Callback callback) throws Exception {
         OpMonitoringData opMonitoringData = new OpMonitoringData(PRODUCER, getEpochMillisecond());
 
-        long start = PerformanceLogger.log(log, "Received request from " + request.getRemoteAddr());
+        long start = PerformanceLogger.log(log, "Received request from " + getRemoteAddr(request));
 
         if (!SystemProperties.isServerProxySupportClientsPooledConnections()) {
             // if the header is added, the connections are closed and cannot be reused on the client side
-            response.addHeader("Connection", "close");
+            response.getHeaders().add("Connection", "close");
         }
 
         try {
@@ -93,17 +84,10 @@ class ServerProxyHandler extends HandlerBase {
 
             GlobalConf.verifyValidity();
 
-            logProxyVersion(request);
-            baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
-            final MessageProcessorBase processor = createRequestProcessor(request, response, opMonitoringData);
+            ClientProxyVersionVerifier.check(request);
+            final MessageProcessorBase processor = createRequestProcessor(RequestWrapper.of(request),
+                    ResponseWrapper.of(response), opMonitoringData);
             processor.process();
-
-            final MessageInfo messageInfo = processor.createRequestMessageInfo();
-            if (processor.verifyMessageExchangeSucceeded()) {
-                MonitorAgent.success(messageInfo, new Date(start), new Date());
-            } else {
-                MonitorAgent.failure(messageInfo, null, null);
-            }
         } catch (Throwable e) { // We want to catch serious errors as well
             CodedException cex = translateWithPrefix(SERVER_SERVERPROXY_X, e);
 
@@ -112,59 +96,33 @@ class ServerProxyHandler extends HandlerBase {
             opMonitoringData.setFaultCodeAndString(cex);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
-            failure(request, response, cex);
+            failure(request, response, callback, cex);
         } finally {
-            baseRequest.setHandled(true);
+            callback.succeeded();
 
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
             OpMonitoring.store(opMonitoringData);
 
             PerformanceLogger.log(log, start, "Request handled");
         }
+        return true;
     }
 
-    private MessageProcessorBase createRequestProcessor(HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) throws Exception {
+    private MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
+                                                        OpMonitoringData opMonitoringData) {
 
-        if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeader(HEADER_MESSAGE_TYPE))) {
-            return new ServerRestMessageProcessor(request, response, client, getClientSslCertChain(request),
+        if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeaders().get(HEADER_MESSAGE_TYPE))) {
+            return new ServerRestMessageProcessor(request, response, client, request.getPeerCertificates().orElse(null),
                     opMonitoringData);
         } else {
-            return new ServerMessageProcessor(request, response, client, getClientSslCertChain(request),
+            return new ServerMessageProcessor(request, response, client, request.getPeerCertificates().orElse(null),
                     opMonitorClient, opMonitoringData);
         }
     }
 
     @Override
-    protected void failure(HttpServletRequest request, HttpServletResponse response, CodedException e)
+    protected void failure(Request request, Response response, Callback callback, CodedException e)
             throws IOException {
-        MonitorAgent.failure(null, e.getFaultCode(), e.getFaultString());
-        sendErrorResponse(request, response, e);
-    }
-
-    private static void logProxyVersion(HttpServletRequest request) {
-        String thatVersion = getVersion(request.getHeader(MimeUtils.HEADER_PROXY_VERSION));
-        String thisVersion = getVersion(ProxyMain.readProxyVersion());
-
-        log.info("Received request from {} (security server version: {})", request.getRemoteAddr(), thatVersion);
-
-        if (!thatVersion.equals(thisVersion)) {
-            log.warn("Peer security server version ({}) does not match host security server version ({})", thatVersion,
-                    thisVersion);
-        }
-    }
-
-    private static String getVersion(String value) {
-        return !StringUtils.isBlank(value) ? value : UNKNOWN_VERSION;
-    }
-
-    private static X509Certificate[] getClientSslCertChain(HttpServletRequest request) throws Exception {
-        Object attribute = request.getAttribute("javax.servlet.request.X509Certificate");
-
-        if (attribute != null) {
-            return (X509Certificate[]) attribute;
-        } else {
-            return null;
-        }
+        sendErrorResponse(request, response, callback, e);
     }
 }

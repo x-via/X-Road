@@ -6,7 +6,6 @@ export DEBEMAIL=info@niis.org
 
 RELEASE=false
 DEB_CHANGELOG=packages/src/xroad/ubuntu/generic/changelog
-DEBJ9_CHANGELOG=packages/src/xroad-jetty9/ubuntu/generic/changelog
 CURRENT_VERSION=`awk '{if ($1 == "##") {print $2; exit;}}' ../CHANGELOG.md`
 
 function version { echo "$@" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }'; }
@@ -36,10 +35,23 @@ function add_dch_entry {
 function release_current {
     dch -r --distribution stable -c "$DEB_CHANGELOG" ""
     sed -i "1s/\-0/\-1/" "$DEB_CHANGELOG"
-    dch -r --distribution stable -c "$DEBJ9_CHANGELOG" ""
-    sed -i "1s/\-0/\-1/" "$DEBJ9_CHANGELOG"
     CURRENT_DATE=`date +%Y-%m-%d`
     sed -i "0,/ - UNRELEASED$/ s// - $CURRENT_DATE/" ../CHANGELOG.md
+}
+
+function validate_version {
+  if [[ ! $1 =~ ^[0-9][0-9]?\.[0-9][0-9]?\.[0-9][0-9]?$ ]]; then
+      echo "Version must be in format x.y.z"
+      exit 1
+  fi
+}
+
+function set_last_supported_version {
+  if [ -z $(sed -i "s/^$1=.*$/$1=$2/w /dev/stdout" "$3") ]; then
+    echo -e "\e[0;31mWarning:\e[0m file [$3] not updated"
+  else
+    echo "Successfully updated file [$3]"
+  fi
 }
 
 for i in "$@"; do
@@ -64,10 +76,7 @@ if [[ -z $VERSION ]]; then
     fi
 fi
 
-if [[ ! $VERSION =~ ^[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?$ ]]; then
-    echo "Version must be in format x.y.z"
-    exit 1
-fi
+validate_version "$VERSION"
 
 if [[ $VERSION == $CURRENT_VERSION ]]; then
     echo "$VERSION is the current version"
@@ -99,12 +108,9 @@ if [[ $DOWNGRADE == true ]]; then
     sed -i "s/## $VERSION.*$/## $VERSION - UNRELEASED/" ../CHANGELOG.md
     downgrade "1" "$VERSION" "$DEB_CHANGELOG" "1"
     sed -i "1s/\-1/\-0/" $DEB_CHANGELOG
-    downgrade "1" "$VERSION" "$DEBJ9_CHANGELOG" "1"
-    sed -i "1s/\-1/\-0/" $DEBJ9_CHANGELOG
 else
     sed -i "2a## $VERSION - UNRELEASED\n" ../CHANGELOG.md
     add_dch_entry "$DEB_CHANGELOG" "$VERSION" "Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz"
-    add_dch_entry "$DEBJ9_CHANGELOG" "$VERSION" "Version bump"
 fi
 
 if [[ $RELEASE == true ]]; then
@@ -114,5 +120,20 @@ fi
 
 sed -i "s/^xroadVersion.*$/xroadVersion=$VERSION/" gradle.properties
 sed -i "s/^VERSION=$CURRENT_VERSION.*$/VERSION=$VERSION/" packages/build-rpm.sh
+sed -i "s/{1:-$CURRENT_VERSION}/{1:-$VERSION}/" ../sidecar/docker-build.sh
+sed -i "s/xroad-security-server-sidecar:$CURRENT_VERSION-slim/xroad-security-server-sidecar:$VERSION-slim/" ../sidecar/kubernetes/security-server-sidecar-slim.yaml
+sed -i "s/xroad-security-server-sidecar:$CURRENT_VERSION/xroad-security-server-sidecar:$VERSION/" ../sidecar/kubernetes/security-server-sidecar.yaml
 
 echo "Version updated to $VERSION"
+
+LAST_SUPPORTED_VERSION_CANDIDATE="$(grep -E "^## [0-9]+\.[0-9]+\.[0-9]+" ../CHANGELOG.md | awk '{print $2}'| cut -d'.' -f1,2 | uniq | head -3 | tail -1).0"
+read -p "Enter the last supported version [default $LAST_SUPPORTED_VERSION_CANDIDATE]: " lastVersion
+LAST_SUPPORTED_VERSION=${lastVersion:-$LAST_SUPPORTED_VERSION_CANDIDATE}
+validate_version "$LAST_SUPPORTED_VERSION"
+echo "Setting the last supported version to $LAST_SUPPORTED_VERSION"
+
+set_last_supported_version "server-min-supported-client-version" "$LAST_SUPPORTED_VERSION" packages/src/xroad/default-configuration/override-securityserver-ee.ini
+set_last_supported_version "server-min-supported-client-version" "$LAST_SUPPORTED_VERSION" packages/src/xroad/default-configuration/override-securityserver-fi.ini
+
+set_last_supported_version "LAST_SUPPORTED_VERSION" "$LAST_SUPPORTED_VERSION" packages/build-deb.sh
+set_last_supported_version "LAST_SUPPORTED_VERSION" "$LAST_SUPPORTED_VERSION" packages/build-rpm.sh

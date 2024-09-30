@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,13 +30,12 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import org.apache.http.client.HttpClient;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
@@ -54,8 +53,8 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response,
+    MessageProcessorBase createRequestProcessor(
+            RequestWrapper request, ResponseWrapper response,
             OpMonitoringData opMonitoringData) throws Exception {
         verifyCanProcess(request);
 
@@ -63,7 +62,7 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
                 getIsAuthenticationData(request), opMonitoringData);
     }
 
-    private void verifyCanProcess(HttpServletRequest request) {
+    private void verifyCanProcess(RequestWrapper request) {
         if (!isPostRequest(request)) {
             throw new ClientException(X_INVALID_HTTP_METHOD,
                     "Must use POST request method instead of %s",

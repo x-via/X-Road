@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,12 +29,10 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.AbstractHttpSender;
-import ee.ria.xroad.common.util.AsyncHttpSender;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.conf.KeyConf;
@@ -55,9 +53,8 @@ import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.bouncycastle.operator.DigestCalculator;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-
-import javax.servlet.http.HttpServletRequest;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Request;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -67,11 +64,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
@@ -167,21 +162,6 @@ public class MessageTestCase {
 
     /**
      * @param service the service ID
-     * @return the security category IDs of the service with the given ID
-     */
-    public Set<SecurityCategoryId> getRequiredCategories(ServiceId service) {
-        return Collections.emptySet();
-    }
-
-    /**
-     * @return the provided security category IDs
-     */
-    public Set<SecurityCategoryId> getProvidedCategories() {
-        return Collections.emptySet();
-    }
-
-    /**
-     * @param service the service ID
      * @return true if the service with the given ID exists
      */
     public boolean serviceExists(ServiceId service) {
@@ -208,14 +188,14 @@ public class MessageTestCase {
     /**
      * @return the server proxy HTTP handler
      */
-    public AbstractHandler getServerProxyHandler() {
+    public Handler.Abstract getServerProxyHandler() {
         return null;
     }
 
     /**
      * @return the service HTTP handler
      */
-    public AbstractHandler getServiceHandler() {
+    public Handler.Abstract getServiceHandler() {
         return null;
     }
 
@@ -357,7 +337,7 @@ public class MessageTestCase {
     }
 
     protected InputStream getQueryInputStream(String fileName,
-            boolean addUtf8Bom) throws Exception {
+                                              boolean addUtf8Bom) throws Exception {
         InputStream is = changeQueryId(new FileInputStream(fileName));
 
         return addUtf8Bom ? addUtf8Bom(is) : is;
@@ -409,7 +389,7 @@ public class MessageTestCase {
         this.queryId = CryptoUtils.encodeHex(dc.getDigest());
     }
 
-    protected void onServiceReceivedHttpRequest(HttpServletRequest request) throws Exception {
+    protected void onServiceReceivedHttpRequest(Request request) throws Exception {
         // NOP
     }
 

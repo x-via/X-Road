@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -42,7 +42,8 @@ import java.security.SecureRandom;
  */
 public final class SSLContextUtil {
 
-    private SSLContextUtil() { }
+    private SSLContextUtil() {
+    }
 
     /**
      * Creates SSLContext used in between security servers
@@ -50,7 +51,7 @@ public final class SSLContextUtil {
      */
     public static SSLContext createXroadSSLContext() throws KeyManagementException, NoSuchAlgorithmException {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {AuthKeyManager.getInstance()}, new TrustManager[] {new AuthTrustManager()},
+        ctx.init(new KeyManager[]{AuthKeyManager.getInstance()}, new TrustManager[]{new AuthTrustManager()},
                 new SecureRandom());
         return ctx;
     }

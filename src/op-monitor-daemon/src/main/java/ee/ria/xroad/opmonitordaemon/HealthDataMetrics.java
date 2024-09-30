@@ -1,20 +1,20 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,7 +26,7 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 
 import com.codahale.metrics.Counter;
@@ -84,7 +84,7 @@ final class HealthDataMetrics {
      *                                 is called when the startup timestamp gauge is queried for data
      */
     static void registerInitialMetrics(MetricRegistry registry,
-            Supplier<Long> startupTimestampProvider) {
+                                       Supplier<Long> startupTimestampProvider) {
         registerMonitoringStartupTimestampGauge(registry,
                 startupTimestampProvider);
         registerHealthStatisticsPeriodSecondsGauge(registry);
@@ -98,10 +98,10 @@ final class HealthDataMetrics {
      *                 analyzed for health metrics
      */
     static void processRecords(MetricRegistry registry,
-            List<OperationalDataRecord> records) {
+                               List<OperationalDataRecord> records) {
         for (OperationalDataRecord rec : records) {
-            if (!rec.getSecurityServerType().equals(
-                    OpMonitoringData.SecurityServerType.PRODUCER)) {
+            if (!SecurityServerType.PRODUCER.equals(
+                    SecurityServerType.fromString(rec.getSecurityServerType()))) {
                 // Health data is computed over the requests that are handled
                 // in the producer role only.
                 continue;
@@ -126,7 +126,7 @@ final class HealthDataMetrics {
     }
 
     private static void registerOrUpdateGauges(MetricRegistry registry,
-            ServiceId serviceId, OperationalDataRecord rec) {
+                                               ServiceId serviceId, OperationalDataRecord rec) {
         // last request timestamp
         String expectedGaugeName = getLastRequestTimestampGaugeName(serviceId,
                 rec.getSucceeded());
@@ -151,7 +151,7 @@ final class HealthDataMetrics {
     }
 
     private static void registerOrUpdateCounters(MetricRegistry registry,
-            ServiceId serviceId, OperationalDataRecord rec) {
+                                                 ServiceId serviceId, OperationalDataRecord rec) {
         String expectedCounterName = getRequestCounterName(serviceId,
                 rec.getSucceeded());
         Counter counter = HealthDataMetricsUtil.findCounter(registry,
@@ -168,7 +168,7 @@ final class HealthDataMetrics {
     }
 
     private static void registerOrUpdateHistograms(MetricRegistry registry,
-            ServiceId serviceId, OperationalDataRecord rec) {
+                                                   ServiceId serviceId, OperationalDataRecord rec) {
         registerOrUpdateHistogram(registry, getRequestDurationName(serviceId), getRequestDuration(rec));
 
         registerOrUpdateHistogram(registry, getRequestSizeName(serviceId), rec.getRequestSize());

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -42,6 +42,8 @@ import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -52,6 +54,13 @@ import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -62,8 +71,7 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
-import org.custommonkey.xmlunit.Diff;
-import org.custommonkey.xmlunit.XMLUnit;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -72,20 +80,15 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.ExpectedException;
 import org.xml.sax.InputSource;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.builder.Input;
+import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.ElementSelectors;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -103,11 +106,11 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.GET_WSDL;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.proxy.util.MetadataRequests.ALLOWED_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.GET_WSDL;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.ALLOWED_METHODS_REQUEST;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.CodedExceptionMatcher.faultCodeEquals;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.GET_WSDL_REQUEST;
@@ -120,6 +123,7 @@ import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.verifyAndGetSingleBody
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -133,7 +137,7 @@ import static org.mockito.Mockito.when;
 public class MetadataServiceHandlerTest {
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
-    private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+    private static final ClientId.Conf DEFAULT_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", "SUBCODE5");
 
     private static final String EXPECTED_WSDL_QUERY_PATH = "/wsdlMock";
@@ -157,8 +161,8 @@ public class MetadataServiceHandlerTest {
 
 
     private HttpClient httpClientMock;
-    private HttpServletRequest mockRequest;
-    private HttpServletResponse mockResponse;
+    private RequestWrapper mockRequest;
+    private ResponseWrapper mockResponse;
     private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
@@ -187,11 +191,10 @@ public class MetadataServiceHandlerTest {
         ServerConf.reload(new TestSuiteServerConf());
 
         httpClientMock = mock(HttpClient.class);
-        mockRequest = mock(HttpServletRequest.class);
-        mockResponse = mock(HttpServletResponse.class);
+        mockRequest = mock(RequestWrapper.class);
+        mockResponse = mock(ResponseWrapper.class);
 
         mockServletOutputStream = new MetaserviceTestUtil.StubServletOutputStream();
-        when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
 
         mockProxyMessage = mock(ProxyMessage.class);
 
@@ -214,7 +217,7 @@ public class MetadataServiceHandlerTest {
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, LIST_METHODS);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
         InputStream soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -237,7 +240,7 @@ public class MetadataServiceHandlerTest {
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, ALLOWED_METHODS);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
         InputStream soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -262,7 +265,7 @@ public class MetadataServiceHandlerTest {
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
 
         InputStream soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -282,18 +285,18 @@ public class MetadataServiceHandlerTest {
     public void shouldHandleListMethods() throws Exception {
 
         // setup
-        List<ServiceId> expectedServices = Arrays.asList(
-                ServiceId.create(DEFAULT_CLIENT, "getNumber"),
-                ServiceId.create(DEFAULT_CLIENT, "helloThere"),
-                ServiceId.create(DEFAULT_CLIENT, "putThings"));
+        List<ServiceId.Conf> expectedServices = Arrays.asList(
+                ServiceId.Conf.create(DEFAULT_CLIENT, "getNumber"),
+                ServiceId.Conf.create(DEFAULT_CLIENT, "helloThere"),
+                ServiceId.Conf.create(DEFAULT_CLIENT, "putThings"));
 
         final ClientId expectedClient = DEFAULT_CLIENT;
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, LIST_METHODS);
+        final ServiceId serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
-            public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider,
-                                                                DescriptionType descriptionType) {
+            public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
+                                                                     DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClient));
                 return expectedServices;
             }
@@ -324,7 +327,7 @@ public class MetadataServiceHandlerTest {
 
         final SoapHeader xrHeader = unmarshaller.unmarshal(message.getSOAPHeader(), SoapHeader.class).getValue();
 
-        List<ServiceId> resultServices = verifyAndGetSingleBodyElementOfType(message.getSOAPBody(),
+        List<ServiceId.Conf> resultServices = verifyAndGetSingleBodyElementOfType(message.getSOAPBody(),
                 MethodListType.class).getService();
 
         assertThat("Response client does not match", xrHeader.getClient(), is(expectedClient));
@@ -340,20 +343,20 @@ public class MetadataServiceHandlerTest {
     public void shouldHandleAllowedMethods() throws Exception {
 
         // setup
-        List<ServiceId> expectedServices = Arrays.asList(
-                ServiceId.create(DEFAULT_CLIENT, "getNumber"),
-                ServiceId.create(DEFAULT_CLIENT, "helloThere"),
-                ServiceId.create(DEFAULT_CLIENT, "putThings"));
+        List<ServiceId.Conf> expectedServices = Arrays.asList(
+                ServiceId.Conf.create(DEFAULT_CLIENT, "getNumber"),
+                ServiceId.Conf.create(DEFAULT_CLIENT, "helloThere"),
+                ServiceId.Conf.create(DEFAULT_CLIENT, "putThings"));
 
         final ClientId expectedClient = DEFAULT_CLIENT;
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, ALLOWED_METHODS);
+        final ServiceId serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
 
         ServerConf.reload(new TestSuiteServerConf() {
 
             @Override
-            public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                                       DescriptionType descriptionType) {
+            public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                                            DescriptionType descriptionType) {
 
                 assertThat("Wrong client in query", client, is(expectedClient));
 
@@ -388,7 +391,7 @@ public class MetadataServiceHandlerTest {
 
         final SoapHeader xrHeader = unmarshaller.unmarshal(message.getSOAPHeader(), SoapHeader.class).getValue();
 
-        List<ServiceId> resultServices = verifyAndGetSingleBodyElementOfType(message.getSOAPBody(),
+        List<ServiceId.Conf> resultServices = verifyAndGetSingleBodyElementOfType(message.getSOAPBody(),
                 MethodListType.class).getService();
 
         assertThat("Response client does not match", xrHeader.getClient(), is(expectedClient));
@@ -404,7 +407,7 @@ public class MetadataServiceHandlerTest {
     @Test
     public void shouldThrowWhenMissingServiceCodeInWsdlRequestBody() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
@@ -432,8 +435,8 @@ public class MetadataServiceHandlerTest {
     @Test
     public void shouldThrowUnknownServiceWhenWsdlUrlNotFound() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
-        final ServiceId requestingWsdlForService = ServiceId.create(DEFAULT_CLIENT, "someServiceWithoutWsdl");
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithoutWsdl");
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
@@ -464,8 +467,8 @@ public class MetadataServiceHandlerTest {
     @Test
     public void shouldThrowRuntimeExWhenWsdlUrlNotOk200() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
-        final ServiceId requestingWsdlForService = ServiceId.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
@@ -485,7 +488,7 @@ public class MetadataServiceHandlerTest {
 
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
-                .willReturn(aResponse().withStatus(HttpServletResponse.SC_FORBIDDEN)));
+                .willReturn(aResponse().withStatus(HttpStatus.FORBIDDEN_403)));
         mockServer.start();
 
 
@@ -500,7 +503,7 @@ public class MetadataServiceHandlerTest {
                 httpClientMock, mock(OpMonitoringData.class));
     }
 
-    private static class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
+    private static final class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
         private OverwriteAttributeFilter filter;
 
         @Override
@@ -516,7 +519,7 @@ public class MetadataServiceHandlerTest {
     @Test
     public void getWsdlShouldModifyOnlyEndpointAddress() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
         TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId);
         // "replace" with the original value (should produce identical output)
         handlerToTest.setTestFilter(OverwriteAttributeFilter.createOverwriteSoapAddressFilter(
@@ -536,18 +539,33 @@ public class MetadataServiceHandlerTest {
         log.debug("expected: {}", expectedXml);
         log.debug("result: {}", resultXml);
 
-        XMLUnit.setIgnoreWhitespace(true);
-        Diff diff = new Diff(resultXml, expectedXml);
-        log.debug("diff: {}", diff);
+        var diffIdentical = DiffBuilder
+                .compare(Input.fromString(expectedXml))
+                .withTest(Input.fromString(resultXml))
+                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byName))
+                .checkForIdentical()
+                .ignoreWhitespace()
+                .build();
+
+        var diffSimilar = DiffBuilder
+                .compare(Input.fromString(expectedXml))
+                .withTest(Input.fromString(resultXml))
+                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byName))
+                .checkForSimilar()
+                .ignoreWhitespace()
+                .build();
+
+        log.debug("diff identical: {}", diffIdentical);
+        log.debug("diff similar: {}", diffSimilar);
         // diff is "similar" (not identical) even if namespace prefixes and element ordering differ
-        assertTrue(diff.similar());
-        assertTrue(diff.identical());
+        assertFalse(diffSimilar.hasDifferences());
+        assertFalse(diffIdentical.hasDifferences());
     }
 
     @Test
     public void shouldHandleGetWsdl() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
         TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId);
         handlerToTest.setTestFilter(OverwriteAttributeFilter.createOverwriteSoapAddressFilter("expected-location"));
 
@@ -589,7 +607,7 @@ public class MetadataServiceHandlerTest {
     @Test
     public void shouldThrowInvalidServiceTypeExWhenGetWsdl() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
         TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId, true);
 
         thrown.expect(CodedException.class);
@@ -604,8 +622,8 @@ public class MetadataServiceHandlerTest {
      * Prepare TestMetadataServiceHandlerImpl, wiremock, et al for get WSDL tests
      */
     private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId, boolean isRest) throws
-            Exception {
-        final ServiceId requestingWsdlForService = ServiceId.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
+                                                                                                             Exception {
+        final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
         TestMetadataServiceHandlerImpl handlerToTest = new TestMetadataServiceHandlerImpl();
 
@@ -628,10 +646,6 @@ public class MetadataServiceHandlerTest {
                 .willReturn(aResponse().withBodyFile("wsdl.wsdl")));
         mockServer.start();
 
-
-        when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
-
-
         handlerToTest.canHandle(serviceId, mockProxyMessage);
 
         return handlerToTest;
@@ -647,7 +661,7 @@ public class MetadataServiceHandlerTest {
         )), "UTF-8");
     }
 
-    private void setUpDatabase(ServiceId serviceId, boolean isRest) throws Exception {
+    private void setUpDatabase(ServiceId.Conf serviceId, boolean isRest) throws Exception {
         ServerConfType conf = new ServerConfType();
         conf.setServerCode("TestServer");
 
@@ -683,7 +697,7 @@ public class MetadataServiceHandlerTest {
 
     }
 
-    private void setUpDatabase(ServiceId serviceId) throws Exception {
+    private void setUpDatabase(ServiceId.Conf serviceId) throws Exception {
         setUpDatabase(serviceId, false);
     }
 
@@ -698,7 +712,7 @@ public class MetadataServiceHandlerTest {
     }
 
 
-    private static class TestMimeContentHandler extends AbstractContentHandler {
+    private static final class TestMimeContentHandler extends AbstractContentHandler {
 
         @Getter
         private SoapHeader xrHeader;
@@ -709,21 +723,17 @@ public class MetadataServiceHandlerTest {
         private List<String> endpointUrls;
 
         private String partContentType;
-
+        @Getter
         private String contentAsString;
 
-        public String getContentAsString() {
-            return contentAsString;
-        }
-
         @Override
-        public void startHeader() throws MimeException {
+        public void startHeader() {
             partContentType = null;
         }
 
         @Override
-        public void field(Field field) throws MimeException {
-            if (field.getName().toLowerCase().equals(HEADER_CONTENT_TYPE)) {
+        public void field(Field field) {
+            if (field.getName().equalsIgnoreCase(HEADER_CONTENT_TYPE)) {
                 partContentType = field.getBody();
             }
         }
