@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -59,13 +59,13 @@ import static ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokenStrategyT
 import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.core.IsCollectionContaining.hasItems;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsIterableContaining.hasItems;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -450,16 +450,18 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeKeyShouldNotCopyOverCertList() {
 
 
-        final ClientId clientId = ClientId.create("FI", "CLIENTMEMBERCLASS", "MEMBERCODE11");
+        final ClientId.Conf clientId = ClientId.Conf.create("FI", "CLIENTMEMBERCLASS", "MEMBERCODE11");
 
         final Key memKey = new Key(null, "memId");
 
-        memKey.addCertRequest(new CertRequest("memRequest 1", clientId, "CN=memRequest1"));
-        memKey.addCertRequest(new CertRequest("memRequest 2", clientId, "CN=memRequest2"));
+        memKey.addCertRequest(new CertRequest("memRequest 1", clientId, "CN=memRequest1", null, "org.example.TestProfileInfoProvider"));
+        memKey.addCertRequest(new CertRequest("memRequest 2", clientId, "CN=memRequest2", null, "org.example.TestProfileInfoProvider2"));
 
         final Key fileKey = new Key(null, "fileId");
-        final CertRequest fileRequest1 = new CertRequest("fileRequest 1", clientId, "CN=fileRequest1");
-        final CertRequest fileRequest2 = new CertRequest("fileRequest 2", clientId, "CN=fileRequest2");
+        final CertRequest fileRequest1 =
+                new CertRequest("fileRequest 1", clientId, "CN=fileRequest1", null, "org.example.TestProfileInfoProvider");
+        final CertRequest fileRequest2 =
+                new CertRequest("fileRequest 2", clientId, "CN=fileRequest2", null, "org.example.TestProfileInfoProvider2");
 
         fileKey.addCertRequest(fileRequest1);
         fileKey.addCertRequest(fileRequest2);
@@ -538,15 +540,15 @@ public class MergeOntoFileTokenStrategyTest {
         }
 
         static int getCertCount(String id) {
-            return Integer.valueOf(id) + 2;
+            return Integer.parseInt(id) + 2;
         }
 
         static int getResponseIndex(String id) {
-            return Integer.valueOf(id) + 1;
+            return Integer.parseInt(id) + 1;
         }
 
         static int getResponseStatus(String id) {
-            return Integer.valueOf(id) * 15 + 3;
+            return Integer.parseInt(id) * 15 + 3;
         }
 
         static List<Key> createKeys(int count) {
@@ -652,7 +654,7 @@ public class MergeOntoFileTokenStrategyTest {
         final String fileId = "file";
         Cert fileCert = new Cert(fileId);
         fileCert.setActive(false);
-        final ClientId fileClientId = ClientId.create("FI", "GOV", "FILEMEMBER");
+        final ClientId.Conf fileClientId = ClientId.Conf.create("FI", "GOV", "FILEMEMBER");
         fileCert.setMemberId(fileClientId);
 
         fileCert.setSavedToConfiguration(false);
@@ -665,7 +667,7 @@ public class MergeOntoFileTokenStrategyTest {
         Cert memCert = new Cert("memory");
         memCert.setOcspResponse(ocspResp);
         memCert.setStatus("asdasdgg");
-        memCert.setMemberId(ClientId.create("FI", "COM", "CLIENTMEMBER"));
+        memCert.setMemberId(ClientId.Conf.create("FI", "COM", "CLIENTMEMBER"));
         memCert.setSavedToConfiguration(true);
 
         testedStrategy.mergeCert(fileCert, memCert);

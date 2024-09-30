@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -81,8 +81,8 @@ public class GetWSDLMessage extends MessageTestCase {
 
     private final WireMockServer mockServer;
 
-    private final ClientId expectedProviderQuery =
-            ClientId.create("EE", "BUSINESS", "producer");
+    private final ClientId.Conf expectedProviderQuery =
+            ClientId.Conf.create("EE", "BUSINESS", "producer");
 
     private final String expectedServiceNameForWSDLQuery = "getRandom";
     private final List<String> expectedWSDLServiceNames =
@@ -130,7 +130,7 @@ public class GetWSDLMessage extends MessageTestCase {
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public IsAuthentication getIsAuthentication(ClientId client) {
-                return  IsAuthentication.NOSSL;
+                return IsAuthentication.NOSSL;
             }
         });
         setUpDatabase();

@@ -1,20 +1,20 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,6 +33,9 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.BasicParser;
@@ -40,17 +43,15 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.http.MimeTypes;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -72,10 +73,8 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 public final class ConfigurationClientMain {
 
     private static final String APP_NAME = "xroad-confclient";
-    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
-    private static ConfigurationClientJobListener listener;
+    private static final ConfigurationClientJobListener LISTENER;
 
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
@@ -86,7 +85,7 @@ public final class ConfigurationClientMain {
                 .with(CONF_FILE_PROXY, "configuration-client")
                 .load();
 
-        listener = new ConfigurationClientJobListener();
+        LISTENER = new ConfigurationClientJobListener();
     }
 
     private static final String OPTION_VERIFY_PRIVATE_PARAMS_EXISTS = "verifyPrivateParamsExists";
@@ -109,12 +108,12 @@ public final class ConfigurationClientMain {
      * @throws Exception if an error occurs
      */
     public static void main(String[] args) throws Exception {
-        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
+        Version.outputVersionInfo(APP_NAME);
         CommandLine cmd = getCommandLine(args);
         String[] actualArgs = cmd.getArgs();
         if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
             // Run configuration client in one-shot mode downloading the specified global configuration version.
-            System.exit(download(actualArgs[0], actualArgs[1]));
+            System.exit(download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2])));
         } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
             // Run configuration client in one-shot mode downloading the current global configuration version.
             System.exit(download(actualArgs[0], actualArgs[1]));
@@ -139,6 +138,26 @@ public final class ConfigurationClientMain {
         return parser.parse(options, args);
     }
 
+    private static int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
+        log.debug("Downloading configuration using anchor {} path = {} version {}",
+                configurationAnchorFile,
+                configurationPath,
+                configurationVersion);
+
+        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
+
+        client = new ConfigurationClient(configurationPath, configurationVersion) {
+            @Override
+            protected void deleteExtraConfigurationDirectories(
+                    List<? extends ConfigurationSource> configurationSources,
+                    FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete anything
+            }
+        };
+
+        return execute();
+    }
+
     private static int download(String configurationAnchorFile, String configurationPath) {
         log.debug("Downloading configuration using anchor {} path = {})",
                 configurationAnchorFile, configurationPath);
@@ -148,7 +167,7 @@ public final class ConfigurationClientMain {
         client = new ConfigurationClient(configurationPath) {
             @Override
             protected void deleteExtraConfigurationDirectories(
-                    PrivateParametersV2 privateParameters,
+                    List<? extends ConfigurationSource> configurationSources,
                     FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete anything
             }
@@ -157,19 +176,14 @@ public final class ConfigurationClientMain {
         return execute();
     }
 
-    private static int validate(String configurationAnchorFile, final ParamsValidator paramsValidator) {
+    private static int validate(String configurationAnchorFile, final ParamsValidator paramsValidator)
+            throws Exception {
         log.trace("Downloading configuration using anchor {}", configurationAnchorFile);
 
         // Create configuration that does not persist files to disk.
         final String configurationPath = SystemProperties.getConfigurationPath();
 
-        ConfigurationDownloader configurationDownloader = new ConfigurationDownloader(configurationPath) {
-            @Override
-            void handleContent(byte[] content, ConfigurationFile file) throws Exception {
-                validateContent(file);
-                super.handleContent(content, file);
-            }
-
+        var configurationDownloader = new ConfigurationDownloader(configurationPath) {
             @Override
             void validateContent(ConfigurationFile file) {
                 paramsValidator.tryMarkValid(file.getContentIdentifier());
@@ -190,10 +204,10 @@ public final class ConfigurationClientMain {
 
         };
 
-        ConfigurationAnchorV2 configurationAnchor = new ConfigurationAnchorV2(configurationAnchorFile);
+        ConfigurationAnchor configurationAnchor = new ConfigurationAnchor(configurationAnchorFile);
         client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
             @Override
-            protected void deleteExtraConfigurationDirectories(PrivateParametersV2 privateParameters,
+            protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
                                                                FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete any files
             }
@@ -252,7 +266,7 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
+            public void handle(RequestWrapper request, ResponseWrapper response) {
                 log.info("handler /execute");
 
                 try {
@@ -265,12 +279,12 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/status", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
-                try {
+            public void handle(RequestWrapper request, ResponseWrapper response) {
+                try (var writer = new PrintWriter(response.getOutputStream())) {
                     log.info("handler /status");
 
-                    response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(ConfigurationClientJobListener.getStatus(), response.getWriter());
+                    response.setContentType(MimeTypes.Type.APPLICATION_JSON_UTF_8);
+                    JsonUtils.getObjectWriter().writeValue(writer, ConfigurationClientJobListener.getStatus());
                 } catch (Exception e) {
                     log.error("Error getting conf client status", e);
                 }
@@ -284,7 +298,7 @@ public final class ConfigurationClientMain {
         adminPort.start();
 
         jobManager = new JobManager();
-        jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
+        jobManager.getJobScheduler().getListenerManager().addJobListener(LISTENER);
 
         JobDataMap data = new JobDataMap();
         data.put("client", client);
@@ -325,15 +339,15 @@ public final class ConfigurationClientMain {
      * Listens for daemon job completions and collects results.
      */
     @Slf4j
-    private static class ConfigurationClientJobListener implements JobListener {
+    private static final class ConfigurationClientJobListener implements JobListener {
         public static final String LISTENER_NAME = "confClientJobListener";
 
         // Access only via synchronized getter/setter.
         private static DiagnosticsStatus status;
 
         static {
-            status = new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, OffsetDateTime.now(),
-                    OffsetDateTime.now().plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+            status = new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, TimeUtils.offsetDateTimeNow(),
+                    TimeUtils.offsetDateTimeNow().plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
         }
 
         private static synchronized void setStatus(DiagnosticsStatus newStatus) {

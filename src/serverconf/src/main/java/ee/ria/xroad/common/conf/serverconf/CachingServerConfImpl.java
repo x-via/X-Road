@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -34,13 +34,11 @@ import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.Session;
@@ -63,7 +61,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     public static final String TSP_URL = "tsp_url";
 
     private final int expireSeconds;
-    private volatile SecurityServerId serverId;
+    private volatile SecurityServerId.Conf serverId;
     private final Cache<Object, List<String>> tspCache;
     private final Cache<ServiceId, Optional<ServiceType>> serviceCache;
     private final Cache<AclCacheKey, List<EndpointType>> aclCache;
@@ -124,8 +122,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    public SecurityServerId getIdentifier() {
-        SecurityServerId id = serverId;
+    public SecurityServerId.Conf getIdentifier() {
+        SecurityServerId.Conf id = serverId;
         if (id == null) {
             return getAndCacheServerId(null);
         } else {
@@ -139,8 +137,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @SuppressWarnings("checkstyle:innerassignment")
-    private synchronized SecurityServerId getAndCacheServerId(final SecurityServerId current) {
-        SecurityServerId id = serverId;
+    private synchronized SecurityServerId.Conf getAndCacheServerId(final SecurityServerId current) {
+        SecurityServerId.Conf id = serverId;
         if (id == current) { //intentional reference equality test (for double-checked locking)
             serverId = id = super.getIdentifier();
         }
@@ -214,11 +212,6 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    public List<SecurityCategoryId> getRequiredCategories(ServiceId service) {
-        return getService(service).map(ServiceType::getRequiredSecurityCategory).orElse(Collections.emptyList());
-    }
-
-    @Override
     protected List<EndpointType> getAclEndpoints(Session session, ClientId client, ServiceId service) {
         final AclCacheKey key = new AclCacheKey(client, service);
         try {
@@ -281,9 +274,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
         internalKeyCache.invalidateAll();
     }
 
-    @Value
-    private static class AclCacheKey {
-        final ClientId client;
-        final ServiceId serviceId;
+
+    private record AclCacheKey(ClientId client, ServiceId serviceId) {
     }
 }

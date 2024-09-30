@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
@@ -99,8 +99,8 @@ public class CachingKeyConfImplTest {
         });
         ServerConf.reload(new EmptyServerConf() {
             @Override
-            public SecurityServerId getIdentifier() {
-                return SecurityServerId.create("TEST", "CLASS", "CODE", "SERVER");
+            public SecurityServerId.Conf getIdentifier() {
+                return SecurityServerId.Conf.create("TEST", "CLASS", "CODE", "SERVER");
             }
         });
         Files.deleteIfExists(KEY_CONF);
@@ -115,9 +115,9 @@ public class CachingKeyConfImplTest {
     @Test(timeout = 5000)
     public void testSigningInfoReads() throws Exception {
         AtomicInteger callsToGetInfo = new AtomicInteger(0);
-        ClientId client1 = ClientId.create("FI", "GOV", "1");
-        ClientId client2 = ClientId.create("FI", "GOV", "1", "SS");
-        ClientId client3 = ClientId.create("FI", "GOV", "2");
+        ClientId client1 = ClientId.Conf.create("FI", "GOV", "1");
+        ClientId client2 = ClientId.Conf.create("FI", "GOV", "1", "SS");
+        ClientId client3 = ClientId.Conf.create("FI", "GOV", "2");
         List<ClientId> clients = Arrays.asList(client1, client2, client3);
         int expectedCacheHits = 0;
         // first read keys from cache with 5 threads, key conf is not changing
@@ -263,8 +263,8 @@ public class CachingKeyConfImplTest {
         // next read key twice, but this time serverId has changed -> one more hit
         ServerConf.reload(new EmptyServerConf() {
             @Override
-            public SecurityServerId getIdentifier() {
-                return SecurityServerId.create("TEST", "CLASS", "CODE2", "SERVER");
+            public SecurityServerId.Conf getIdentifier() {
+                return SecurityServerId.Conf.create("TEST", "CLASS", "CODE2", "SERVER");
             }
         });
         doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
@@ -318,13 +318,13 @@ public class CachingKeyConfImplTest {
      * @param slowCacheReadTimeMs how much cache refresh is slowed
      */
     private void doConcurrentSigningInfoReads(AtomicInteger dataRefreshes,
-            List<ClientId> clients,
-            BooleanSupplier keyConfHasChanged,
-            BooleanSupplier authKeyIsValid,
-            BooleanSupplier signingInfoIsValid,
-            int concurrentThreads,
-            int loops,
-            int slowCacheReadTimeMs) throws Exception {
+                                              List<ClientId> clients,
+                                              BooleanSupplier keyConfHasChanged,
+                                              BooleanSupplier authKeyIsValid,
+                                              BooleanSupplier signingInfoIsValid,
+                                              int concurrentThreads,
+                                              int loops,
+                                              int slowCacheReadTimeMs) throws Exception {
 
         final TestCachingKeyConfImpl testCachingKeyConf = new TestCachingKeyConfImpl(
                 dataRefreshes,
@@ -360,12 +360,12 @@ public class CachingKeyConfImplTest {
      * @param slowCacheReadTimeMs how much cache refresh is slowed
      */
     private void doConcurrentAuthKeyReads(AtomicInteger dataRefreshes,
-            BooleanSupplier keyConfHasChanged,
-            BooleanSupplier authKeyIsValid,
-            BooleanSupplier signingInfoIsValid,
-            int concurrentThreads,
-            int loops,
-            int slowCacheReadTimeMs) throws Exception {
+                                          BooleanSupplier keyConfHasChanged,
+                                          BooleanSupplier authKeyIsValid,
+                                          BooleanSupplier signingInfoIsValid,
+                                          int concurrentThreads,
+                                          int loops,
+                                          int slowCacheReadTimeMs) throws Exception {
 
         TestCachingKeyConfImpl testCachingKeyConf = new TestCachingKeyConfImpl(
                 dataRefreshes,
@@ -385,8 +385,8 @@ public class CachingKeyConfImplTest {
     }
 
     private void doConcurrentCacheReads(CacheReadOperation readOperation,
-            int threads,
-            int loops) throws Exception {
+                                        int threads,
+                                        int loops) throws Exception {
 
         ExecutorService executorService = Executors.newFixedThreadPool(threads);
 
@@ -447,10 +447,10 @@ public class CachingKeyConfImplTest {
         final CountDownLatch ready = new CountDownLatch(1);
 
         TestCachingKeyConfImpl(AtomicInteger dataRefreshes,
-                BooleanSupplier keyConfHasChanged,
-                BooleanSupplier authKeyIsValid,
-                BooleanSupplier signingInfoIsValid,
-                int cacheReadDelayMs) {
+                               BooleanSupplier keyConfHasChanged,
+                               BooleanSupplier authKeyIsValid,
+                               BooleanSupplier signingInfoIsValid,
+                               int cacheReadDelayMs) {
             this.dataRefreshes = dataRefreshes;
             this.keyConfHasChanged = keyConfHasChanged;
             this.authKeyIsValid = authKeyIsValid;

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -49,6 +49,7 @@ import org.w3c.dom.Element;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.GSON;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.OBJECT_READER;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.formatFullOperationalDataAsJson;
 import static org.junit.Assert.assertEquals;
 
@@ -106,7 +107,7 @@ public class QueryRequestHandlerTest {
 
             @Override
             protected ClientId getClientForFilter(ClientId clientId,
-                    SecurityServerId serverId) throws Exception {
+                                                  SecurityServerId serverId) throws Exception {
                 return null;
             }
         };
@@ -121,36 +122,36 @@ public class QueryRequestHandlerTest {
         SoapMessageDecoder decoder = new SoapMessageDecoder(testContentType,
                 new SoapMessageDecoder.Callback() {
 
-                @Override
-                public void soap(SoapMessage message, Map<String, String> headers)
-                    throws Exception {
-                    assertEquals("cid:" + OperationalDataRequestHandler.CID,
-                            findRecordsContentId(message));
-                }
+                    @Override
+                    public void soap(SoapMessage message, Map<String, String> headers)
+                            throws Exception {
+                        assertEquals("cid:" + OperationalDataRequestHandler.CID,
+                                findRecordsContentId(message));
+                    }
 
-                @Override
-                public void attachment(String contentType, InputStream content,
-                        Map<String, String> additionalHeaders) throws Exception {
-                    String expectedCid = "<" + OperationalDataRequestHandler.CID
-                            + ">";
-                    assertEquals(expectedCid, additionalHeaders.get("content-id"));
-                }
+                    @Override
+                    public void attachment(String contentType, InputStream content,
+                                           Map<String, String> additionalHeaders) throws Exception {
+                        String expectedCid = "<" + OperationalDataRequestHandler.CID
+                                + ">";
+                        assertEquals(expectedCid, additionalHeaders.get("content-id"));
+                    }
 
-                @Override
-                public void onCompleted() {
-                    // Do nothing.
-                }
+                    @Override
+                    public void onCompleted() {
+                        // Do nothing.
+                    }
 
-                @Override
-                public void onError(Exception t) throws Exception {
-                    throw t;
-                }
+                    @Override
+                    public void onError(Exception t) throws Exception {
+                        throw t;
+                    }
 
-                @Override
-                public void fault(SoapFault fault) throws Exception {
-                    throw fault.toCodedException();
-                }
-            });
+                    @Override
+                    public void fault(SoapFault fault) throws Exception {
+                        throw fault.toCodedException();
+                    }
+                });
 
         decoder.parse(IOUtils.toInputStream(out.toString()));
     }
@@ -190,20 +191,20 @@ public class QueryRequestHandlerTest {
 
         GetSecurityServerHealthDataResponseType responseData =
                 JaxbUtils.createUnmarshaller(
-                        GetSecurityServerHealthDataResponseType.class)
-                .unmarshal(SoapUtils.getFirstChild(
-                        response.getSoap().getSOAPBody()),
-                        GetSecurityServerHealthDataResponseType.class)
-                .getValue();
+                                GetSecurityServerHealthDataResponseType.class)
+                        .unmarshal(SoapUtils.getFirstChild(
+                                        response.getSoap().getSOAPBody()),
+                                GetSecurityServerHealthDataResponseType.class)
+                        .getValue();
 
         assertEquals(TEST_TIMESTAMP,
                 responseData.getMonitoringStartupTimestamp());
         assertEquals(2, responseData.getServicesEvents()
                 .getServiceEvents().size());
-        assertEquals(ServiceId.create("XTEE-CI-XM", "GOV", "00000001",
-                "System1", "xroad/GetRandom", "v2"),
+        assertEquals(ServiceId.Conf.create("XTEE-CI-XM", "GOV", "00000001",
+                        "System1", "xroad/GetRandom", "v2"),
                 responseData.getServicesEvents().getServiceEvents()
-                .get(0).getService());
+                        .get(0).getService());
         assertEquals(5, responseData.getServicesEvents()
                 .getServiceEvents().get(0).getLastPeriodStatistics()
                 .getSuccessfulRequestCount());
@@ -213,13 +214,13 @@ public class QueryRequestHandlerTest {
     }
 
     private final class TestMetricsRegistry extends MetricRegistry {
-        TestMetricsRegistry() {
+        TestMetricsRegistry() throws IOException {
             HealthDataMetrics.registerInitialMetrics(this,
                     () -> TEST_TIMESTAMP);
 
             List<OperationalDataRecord> records = new ArrayList<>();
 
-            ServiceId id = ServiceId.create("XTEE-CI-XM", "GOV",
+            ServiceId id = ServiceId.Conf.create("XTEE-CI-XM", "GOV",
                     "00000001", "System1", "xroad/GetRandom");
 
             for (int i = 0; i < 10; i++) {
@@ -228,14 +229,14 @@ public class QueryRequestHandlerTest {
                 records.add(record);
             }
 
-            id = ServiceId.create("XTEE-CI-XM", "GOV",
+            id = ServiceId.Conf.create("XTEE-CI-XM", "GOV",
                     "00000001", "System2", "xroad/GetRandom");
 
             for (int i = 0; i < 10; i++) {
                 records.add(createRecord(id, i % 2 == 0));
             }
 
-            id = ServiceId.create("XTEE-CI-XM", "GOV",
+            id = ServiceId.Conf.create("XTEE-CI-XM", "GOV",
                     "00000001", "System1", "xroad/GetRandom", "v2");
 
             for (int i = 0; i < 10; i++) {
@@ -248,8 +249,8 @@ public class QueryRequestHandlerTest {
         }
 
         private OperationalDataRecord createRecord(ServiceId serviceId,
-                boolean success) {
-            OperationalDataRecord record = GSON.fromJson(
+                                                   boolean success) throws IOException {
+            OperationalDataRecord record = OBJECT_READER.readValue(
                     formatFullOperationalDataAsJson(),
                     OperationalDataRecord.class);
             record.setServiceXRoadInstance(serviceId.getXRoadInstance());
@@ -260,7 +261,7 @@ public class QueryRequestHandlerTest {
             record.setServiceVersion(serviceId.getServiceVersion());
             record.setSecurityServerType(
                     OpMonitoringData.SecurityServerType.PRODUCER
-                    .getTypeString());
+                            .getTypeString());
             record.setServiceType(SERVICE_TYPE_REST);
             record.setSucceeded(success);
             record.setRequestSize(999L);

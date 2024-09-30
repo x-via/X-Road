@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -35,11 +35,9 @@ import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.StartStop;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,32 +50,25 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_OP_MONITOR;
  * and providing monitoring data.
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class OpMonitorDaemonMain {
-
-    public static final String OP_MONITOR_DAEMON_NAME = "OpMonitorDaemon";
     private static final String APP_NAME = "xroad-opmonitor";
-    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
-            .with(CONF_FILE_OP_MONITOR, "op-monitor")
-            .load();
+                .with(CONF_FILE_OP_MONITOR, "op-monitor")
+                .load();
     }
-
-    private static ActorSystem actorSystem;
 
     private static final List<StartStop> SERVICES = new ArrayList<>();
 
-    private OpMonitorDaemonMain() {
-    }
-
     /**
      * Main entry point of the daemon.
+     *
      * @param args command-line arguments
      * @throws Exception in case of any errors
      */
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         try {
             startup();
             loadConfigurations();
@@ -93,11 +84,7 @@ public final class OpMonitorDaemonMain {
 
     private static void startup() {
         log.info("Starting the operational monitoring daemon");
-        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
-
-        actorSystem = ActorSystem.create(OP_MONITOR_DAEMON_NAME,
-                ConfigFactory.load().getConfig("opmonitordaemon")
-                        .withFallback(ConfigFactory.load()));
+        Version.outputVersionInfo(APP_NAME);
     }
 
     private static void loadConfigurations() {
@@ -115,7 +102,7 @@ public final class OpMonitorDaemonMain {
 
         createServices();
 
-        for (StartStop service: SERVICES) {
+        for (StartStop service : SERVICES) {
             String name = service.getClass().getSimpleName();
 
             try {
@@ -130,7 +117,7 @@ public final class OpMonitorDaemonMain {
             }
         }
 
-        for (StartStop service: SERVICES) {
+        for (StartStop service : SERVICES) {
             service.join();
         }
     }
@@ -138,7 +125,7 @@ public final class OpMonitorDaemonMain {
     private static void createServices() throws Exception {
         JobManager jobManager = new JobManager();
 
-        OperationalDataRecordCleaner.init(jobManager, actorSystem);
+        OperationalDataRecordCleaner.init(jobManager);
 
         SERVICES.add(jobManager);
         SERVICES.add(new OpMonitorDaemon());
@@ -166,7 +153,7 @@ public final class OpMonitorDaemonMain {
     }
 
     private static void stopServices() throws Exception {
-        for (StartStop service: SERVICES) {
+        for (StartStop service : SERVICES) {
             log.debug("Stopping " + service.getClass().getSimpleName());
 
             service.stop();
@@ -177,7 +164,6 @@ public final class OpMonitorDaemonMain {
     private static void shutdown() throws Exception {
         log.info("Shutting down the operational monitoring daemon");
         stopServices();
-        Await.ready(actorSystem.terminate(), Duration.Inf());
     }
 }
 

@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
-LAST_SUPPORTED_VERSION=7.1.0
+LAST_SUPPORTED_VERSION=7.3.0
+
+warn() {
+  echo "$(tput setaf 3)*** $*$(tput sgr0)"
+}
 
 function builddeb {
     local root="$1"
@@ -33,7 +37,8 @@ EOF
     done
     sed -i "s/#LAST_SUPPORTED_VERSION#/${LAST_SUPPORTED_VERSION}/" debian/*.preinst
 
-    echo "using packageVersion $packageVersion"
+    warn "Building $dist packages.."
+    warn "using packageVersion $packageVersion"
     if [[ $packageVersion != "-release" ]]; then
         version=$version."$packageVersion"
     else
@@ -57,10 +62,7 @@ DIR="$(cd "$(dirname $0)" && pwd)"
 cd "$DIR"
 
 mkdir -p build/xroad
-mkdir -p build/xroad-jetty9
 cp -a src/xroad/ubuntu build/xroad/
-cp -a src/xroad-jetty9/ubuntu build/xroad-jetty9/
-./download_jetty.sh
 
 # version was not given, use empty
 if [ -z "$2" ]; then
@@ -73,12 +75,14 @@ case "$1" in
     focal)
         prepare ubuntu20.04
         builddeb build/xroad/ubuntu focal ubuntu20.04 "$PACKAGE_VERSION"
-        builddeb build/xroad-jetty9/ubuntu focal ubuntu20.04 "$PACKAGE_VERSION"
         ;;
     jammy)
         prepare ubuntu22.04
         builddeb build/xroad/ubuntu jammy ubuntu22.04 "$PACKAGE_VERSION"
-        builddeb build/xroad-jetty9/ubuntu jammy ubuntu22.04 "$PACKAGE_VERSION"
+        ;;
+    noble)
+        prepare ubuntu24.04
+        builddeb build/xroad/ubuntu noble ubuntu24.04 "$PACKAGE_VERSION"
         ;;
     *)
         echo "Unsupported distribution $dist"

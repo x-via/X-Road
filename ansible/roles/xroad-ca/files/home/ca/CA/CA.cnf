@@ -1,8 +1,8 @@
 # OpenSSL root CA configuration file.
+[ default ]
 HOME		= .
 INTERMEDIATE    = intermediate
-INTERMEDIATE    = ${ENV::INTERMEDIATE}
-RANDFILE	= $HOME/private/.rnd
+_INTERMEDIATE    = $ENV::INTERMEDIATE
 
 [ ca ]
 # `man ca`
@@ -39,7 +39,7 @@ policy            = policy_loose
 
 [ CA_intermediate ]
 # Directory and file locations.
-dir               = $HOME/$INTERMEDIATE
+dir               = $HOME/$_INTERMEDIATE
 certs             = $dir/certs
 crl_dir           = $dir/crl
 new_certs_dir     = $dir/newcerts
@@ -47,8 +47,8 @@ database          = $dir/index.txt
 serial            = $dir/serial
 
 # The root key and root certificate.
-private_key       = $dir/../private/$INTERMEDIATE.key.pem
-certificate       = $dir/../certs/$INTERMEDIATE.cert.pem
+private_key       = $dir/../private/$_INTERMEDIATE.key.pem
+certificate       = $dir/../certs/$_INTERMEDIATE.cert.pem
 
 # For certificate revocation lists.
 crlnumber         = $dir/crlnumber
@@ -87,6 +87,7 @@ commonName              = supplied
 emailAddress            = optional
 domainComponent         = optional
 serialNumber            = optional
+businessCategory        = optional
 
 [ req ]
 # Options for the `req` tool (`man req`).
@@ -113,7 +114,7 @@ commonName                      = Common Name
 
 # Optionally, specify some defaults.
 #countryName_default             =
-#stateOrProvinceName_default     = 
+#stateOrProvinceName_default     =
 #localityName_default            =
 0.organizationName_default      = X-Road Test
 organizationalUnitName_default  =
@@ -178,6 +179,12 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
 extendedKeyUsage = clientAuth, serverAuth
 
+[extensions]
+basicConstraints = CA:FALSE
+keyUsage = critical,nonRepudiation
+#keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
+#extendedKeyUsage = clientAuth, serverAuth
+
 [ tsa ]
 default_tsa = tsa_config1 # the default TSA section
 
@@ -185,16 +192,16 @@ default_tsa = tsa_config1 # the default TSA section
 dir               = $HOME/TSA
 serial            = $dir/serial
 
-# These are used by the TSA reply generation only. 
-signer_cert     = $dir/tsa.crt # The TSA signing certificate # (optional) 
+# These are used by the TSA reply generation only.
+signer_cert     = $dir/tsa.crt # The TSA signing certificate # (optional)
 signer_key      = $dir/tsa.key # The TSA private key (optional)
 
-default_policy  = 1.2.3.4 # Policy if request did not specify it # (optional) 
-#other_policies = tsa_policy2, tsa_policy3 # acceptable policies (optional) 
-digests         = md5, sha1 # Acceptable message digests (mandatory) 
-accuracy        = secs:1, millisecs:500, microsecs:100 # (optional) 
-clock_precision_digits = 0 # number of digits after dot. (optional) 
-ordering        = no # Is ordering defined for timestamps? # (optional, default: no) 
-tsa_name        = yes # Must the TSA name be included in the reply? # (optional, default: no) 
-ess_cert_id_chain = no # Must the ESS cert id chain be included? # (optional, default: no) 
+default_policy  = 1.2.3.4 # Policy if request did not specify it # (optional)
+#other_policies = tsa_policy2, tsa_policy3 # acceptable policies (optional)
+digests         = sha152, sha384, sha256, sha1 # Acceptable message digests (mandatory)
+accuracy        = secs:1, millisecs:500, microsecs:100 # (optional)
+clock_precision_digits = 0 # number of digits after dot. (optional)
+ordering        = no # Is ordering defined for timestamps? # (optional, default: no)
+tsa_name        = yes # Must the TSA name be included in the reply? # (optional, default: no)
+ess_cert_id_chain = no # Must the ESS cert id chain be included? # (optional, default: no)
 

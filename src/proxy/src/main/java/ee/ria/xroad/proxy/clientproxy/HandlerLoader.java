@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -47,7 +47,7 @@ final class HandlerLoader {
     }
 
     private static Handler instantiate(Class<? extends Handler> handlerClass,
-            HttpClient client) throws Exception {
+                                       HttpClient client) throws Exception {
         try {
             Constructor<? extends Handler> constructor =
                     handlerClass.getConstructor(HttpClient.class);

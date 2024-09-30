@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -236,7 +236,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     @Override
     public void soap(SoapMessageImpl message,
-            Map<String, String> additionalHeaders) throws Exception {
+                     Map<String, String> additionalHeaders) throws Exception {
         if (log.isTraceEnabled()) {
             log.trace("writeSoapMessage({})", message.getXml());
         }
@@ -255,7 +255,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     @Override
     public void attachment(String contentType, InputStream content,
-            Map<String, String> additionalHeaders) throws Exception {
+                           Map<String, String> additionalHeaders) throws Exception {
         log.trace("writeAttachment({})", contentType);
 
         if (!inAttachmentPart) {

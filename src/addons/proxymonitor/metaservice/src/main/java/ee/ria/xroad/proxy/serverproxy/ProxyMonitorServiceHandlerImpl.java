@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -36,6 +36,7 @@ import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -46,16 +47,14 @@ import ee.ria.xroad.proxymonitor.message.ObjectFactory;
 import ee.ria.xroad.proxymonitor.message.StringMetricType;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -101,7 +100,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     @Override
     public boolean canHandle(ServiceId requestServiceId, ProxyMessage requestProxyMessage) {
-        final ServiceId serviceId = ServiceId.create(ServerConf.getIdentifier().getOwner(), SERVICE_CODE);
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(ServerConf.getIdentifier().getOwner(), SERVICE_CODE);
 
         if (serviceId.equals(requestServiceId)) {
             requestMessage = requestProxyMessage;
@@ -112,9 +111,8 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
-    public void startHandling(HttpServletRequest servletRequest,
-                              ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
-                              OpMonitoringData opMonitoringData) throws Exception {
+    public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
+                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception {
 
         // It's required that in case of proxy monitor service (where SOAP
         // message is not forwarded) the requestOutTs must be equal with the
@@ -219,12 +217,11 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
     }
 
     private static SoapMessageImpl createResponse(SoapMessageImpl requestMessage, Object response) throws Exception {
-        SoapMessageImpl responseMessage = SoapUtils.toResponse(requestMessage,
+        return SoapUtils.toResponse(requestMessage,
                 soap -> {
                     soap.getSOAPBody().removeContents();
                     marshal(response, soap.getSOAPBody());
                 });
-        return responseMessage;
     }
 
     private static void marshal(Object object, Node out) throws Exception {

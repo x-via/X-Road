@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,17 +27,22 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.ConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
+import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.getVersion;
 
 /**
  * Configuration client downloads the configuration from sources found in the configuration anchor.
@@ -50,13 +55,17 @@ class ConfigurationClient {
 
     private ConfigurationSource configurationAnchor;
 
+    ConfigurationClient(String globalConfigurationDir, int configurationVersion) {
+        this.globalConfigurationDir = globalConfigurationDir;
+        downloader = new ConfigurationDownloader(globalConfigurationDir, configurationVersion);
+    }
+
     ConfigurationClient(String globalConfigurationDir) {
         this.globalConfigurationDir = globalConfigurationDir;
         downloader = new ConfigurationDownloader(globalConfigurationDir);
     }
 
-    ConfigurationClient(String globalConfigurationDir, ConfigurationDownloader downloader,
-                               ConfigurationSource configurationAnchor) {
+    ConfigurationClient(String globalConfigurationDir, ConfigurationDownloader downloader, ConfigurationSource configurationAnchor) {
         this.globalConfigurationDir = globalConfigurationDir;
         this.downloader = downloader;
         this.configurationAnchor = configurationAnchor;
@@ -65,28 +74,32 @@ class ConfigurationClient {
     synchronized void execute() throws Exception {
         log.debug("Configuration client executing...");
 
-        if (configurationAnchor == null || configurationAnchor.hasChanged()) {
+        if (configurationAnchor == null || (configurationAnchor instanceof ConfProvider cp && cp.hasChanged())) {
             log.debug("Initializing configuration anchor");
 
             initConfigurationAnchor();
         }
 
         downloadConfigurationFromAnchor();
-        PrivateParametersV2 privateParameters = loadPrivateParameters();
+        var configurationSources = getAdditionalConfigurationSources();
 
         FederationConfigurationSourceFilter sourceFilter =
                 new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier());
 
-        deleteExtraConfigurationDirectories(privateParameters, sourceFilter);
+        deleteExtraConfigurationDirectories(configurationSources, sourceFilter);
 
-        downloadConfigurationFromAdditionalSources(privateParameters, sourceFilter);
+        downloadConfigurationFromAdditionalSources(configurationSources, sourceFilter);
+    }
+
+    protected List<PrivateParameters.ConfigurationAnchor> getAdditionalConfigurationSources() {
+        PrivateParameters privateParameters = loadPrivateParameters();
+        return privateParameters != null ? privateParameters.getConfigurationAnchors() : List.of();
     }
 
     private void initConfigurationAnchor() throws Exception {
         log.trace("initConfigurationAnchor()");
 
         String anchorFileName = SystemProperties.getConfigurationAnchorFile();
-
         if (!Files.exists(Paths.get(anchorFileName))) {
             log.warn("Cannot download configuration, anchor file {} does not exist", anchorFileName);
 
@@ -94,7 +107,7 @@ class ConfigurationClient {
         }
 
         try {
-            configurationAnchor = new ConfigurationAnchorV2(anchorFileName);
+            configurationAnchor = new ConfigurationAnchor(anchorFileName);
         } catch (Exception e) {
             String message = String.format("Failed to load configuration anchor from file %s", anchorFileName);
 
@@ -104,6 +117,7 @@ class ConfigurationClient {
         }
 
         saveInstanceIdentifier();
+
     }
 
     void saveInstanceIdentifier() throws Exception {
@@ -117,22 +131,30 @@ class ConfigurationClient {
         handleResult(downloader.download(configurationAnchor), true);
     }
 
-    private PrivateParametersV2 loadPrivateParameters() {
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private PrivateParameters loadPrivateParameters() {
         try {
-            ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(globalConfigurationDir);
-            return dir.getPrivate(configurationAnchor.getInstanceIdentifier());
+            Path privateParamsPath = Path.of(globalConfigurationDir, configurationAnchor.getInstanceIdentifier(),
+                    ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
+
+            if (!Files.exists(privateParamsPath)) {
+                log.debug("Skipping reading private parameters as {} does not exist", privateParamsPath);
+                return null;
+            }
+            return ParametersProviderFactory.forGlobalConfVersion(getVersion(privateParamsPath))
+                    .privateParametersProvider(privateParamsPath, OffsetDateTime.MAX)
+                    .getPrivateParameters();
         } catch (Exception e) {
             log.error("Failed to read additional configuration sources from" + globalConfigurationDir, e);
             return null;
         }
     }
 
-    protected void deleteExtraConfigurationDirectories(PrivateParametersV2 privateParameters,
-                                                     FederationConfigurationSourceFilter sourceFilter) {
+    protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
+                                                       FederationConfigurationSourceFilter sourceFilter) {
         Set<String> directoriesToKeep;
-        if (privateParameters != null) {
-            directoriesToKeep = privateParameters.getConfigurationSource()
-                    .stream()
+        if (configurationSources != null) {
+            directoriesToKeep = configurationSources.stream()
                     .map(ConfigurationSource::getInstanceIdentifier)
                     .filter(sourceFilter::shouldDownloadConfigurationFor)
                     .map(ConfigurationUtils::escapeInstanceIdentifier)
@@ -149,13 +171,14 @@ class ConfigurationClient {
         ConfigurationDirectory.deleteExtraDirs(globalConfigurationDir, directoriesToKeep);
     }
 
-    private void downloadConfigurationFromAdditionalSources(PrivateParametersV2 privateParameters,
-                                                FederationConfigurationSourceFilter sourceFilter) throws Exception {
-        if (privateParameters != null) {
-            for (ConfigurationSource source : privateParameters.getConfigurationSource()) {
+    private void downloadConfigurationFromAdditionalSources(List<? extends ConfigurationSource> configurationSources,
+                                                            FederationConfigurationSourceFilter sourceFilter) throws Exception {
+        if (configurationSources != null) {
+            for (ConfigurationSource source : configurationSources) {
                 if (sourceFilter.shouldDownloadConfigurationFor(source.getInstanceIdentifier())) {
                     DownloadResult result = downloader.download(
-                            source, ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
+                            source,
+                            ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
                     handleResult(result, false);
                 }
             }
@@ -171,6 +194,8 @@ class ConfigurationClient {
                     throw e; // re-throw
                 }
             }
+        } else {
+            log.info("Successfully downloaded configuration from: {}", result.getConfiguration().getLocation().getDownloadURL());
         }
     }
 

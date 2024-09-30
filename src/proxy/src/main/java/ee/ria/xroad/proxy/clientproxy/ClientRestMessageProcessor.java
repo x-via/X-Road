@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -33,13 +33,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
-import ee.ria.xroad.common.monitoring.MessageInfo;
-import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -56,11 +56,6 @@ import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.TeeInputStream;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -78,11 +73,11 @@ import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_REST;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static ee.ria.xroad.common.util.HeaderValueUtils.getBoundary;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
-import static ee.ria.xroad.common.util.MimeUtils.getBoundary;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
@@ -99,10 +94,10 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private String xRequestId;
     private byte[] restBodyDigest;
 
-    ClientRestMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
-            throws Exception {
-        super(servletRequest, servletResponse, httpClient, clientCert, opMonitoringData);
+    ClientRestMessageProcessor(RequestWrapper request, ResponseWrapper response,
+                               HttpClient httpClient, IsAuthenticationData clientCert,
+                               OpMonitoringData opMonitoringData) throws Exception {
+        super(request, response, httpClient, clientCert, opMonitoringData);
         this.xRequestId = UUID.randomUUID().toString();
     }
 
@@ -113,10 +108,10 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
         try {
             restRequest = new RestRequest(
-                    servletRequest.getMethod(),
-                    servletRequest.getRequestURI(),
-                    servletRequest.getQueryString(),
-                    headers(servletRequest),
+                    jRequest.getMethod(),
+                    jRequest.getHttpURI().getPath(),
+                    jRequest.getHttpURI().getQuery(),
+                    headers(jRequest),
                     xRequestId
             );
 
@@ -187,15 +182,10 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         // Add unique id to distinguish request/response pairs
         httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
 
-        try {
-            final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.randomAlphabetic(30));
-            opMonitoringData.setRequestOutTs(getEpochMillisecond());
-            httpSender.doPost(getServiceAddress(addresses), new ProxyMessageEntity(contentType));
-            opMonitoringData.setResponseInTs(getEpochMillisecond());
-        } catch (Exception e) {
-            MonitorAgent.serverProxyFailed(createRequestMessageInfo());
-            throw e;
-        }
+        final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.randomAlphabetic(30));
+        opMonitoringData.setRequestOutTs(getEpochMillisecond());
+        httpSender.doPost(getServiceAddress(addresses), new ProxyMessageEntity(contentType));
+        opMonitoringData.setResponseInTs(getEpochMillisecond());
     }
 
     private void parseResponse(HttpSender httpSender) throws Exception {
@@ -275,34 +265,20 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void sendResponse() throws Exception {
         final RestResponse rest = response.getRestResponse();
-        if (servletResponse instanceof Response) {
-            // the standard API for setting reason and code is deprecated
-            ((Response) servletResponse).setStatusWithReason(
-                    rest.getResponseCode(),
-                    rest.getReason());
-        } else {
-            servletResponse.setStatus(rest.getResponseCode());
-        }
-        servletResponse.setHeader("Date", null);
+        jResponse.setStatus(rest.getResponseCode());
+
         for (Header h : rest.getHeaders()) {
-            servletResponse.addHeader(h.getName(), h.getValue());
+            if ("Date".equalsIgnoreCase(h.getName())) {
+                jResponse.putHeader(h.getName(), h.getValue());
+            } else {
+                jResponse.addHeader(h.getName(), h.getValue());
+            }
         }
         if (response.hasRestBody()) {
-            IOUtils.copy(response.getRestBody(), servletResponse.getOutputStream());
+            try (var out = jResponse.getOutputStream()) {
+                IOUtils.copy(response.getRestBody(), out);
+            }
         }
-    }
-
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        if (restRequest == null) {
-            return null;
-        }
-
-        return new MessageInfo(MessageInfo.Origin.CLIENT_PROXY,
-                restRequest.getClientId(),
-                requestServiceId,
-                null,
-                null);
     }
 
     class ProxyMessageEntity extends AbstractHttpEntity {
@@ -335,13 +311,13 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
                 final CertChain chain = KeyConf.getAuthKey().getCertChain();
                 KeyConf.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
-                        .forEach(resp -> enc.ocspResponse(resp));
+                        .forEach(enc::ocspResponse);
 
                 enc.restRequest(restRequest);
 
                 //Optimize the case without request body (e.g. simple get requests)
                 //TBD: Optimize the case without body logging
-                try (InputStream in = servletRequest.getInputStream()) {
+                try (InputStream in = jRequest.getInputStream()) {
                     @SuppressWarnings("checkstyle:magicnumber")
                     byte[] buf = new byte[4096];
                     int count = in.read(buf);
@@ -381,10 +357,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private List<Header> headers(HttpServletRequest req) {
-        //Use jetty request to keep the original order
-        Request jrq = (Request) req;
-        return jrq.getHttpFields().stream()
+    private List<Header> headers(RequestWrapper req) {
+        return req.getHeaders().stream()
                 .map(f -> new BasicHeader(f.getName(), f.getValue()))
                 .collect(Collectors.toCollection(ArrayList::new));
     }

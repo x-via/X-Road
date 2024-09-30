@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -34,13 +34,12 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-
-import javax.servlet.http.HttpServletRequest;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -86,7 +85,7 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
 
     @Override
     public boolean canHandle(ServiceId requestServiceId,
-            ProxyMessage proxyRequestMessage) {
+                             ProxyMessage proxyRequestMessage) {
         switch (requestServiceId.getServiceCode()) {
             case GET_SECURITY_SERVER_HEALTH_DATA: // $FALL-THROUGH$
             case GET_SECURITY_SERVER_OPERATIONAL_DATA:
@@ -97,8 +96,8 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
-    public void startHandling(HttpServletRequest servletRequest, ProxyMessage proxyRequestMessage,
-            HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception {
+    public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
+                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception {
         log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
 
         sender = createHttpSender(opMonitorClient);
@@ -129,8 +128,8 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
         return new HttpSender(opMonitorClient);
     }
 
-    private void sendRequest(HttpServletRequest servletRequest, ProxyMessage proxyRequestMessage,
-            OpMonitoringData opMonitoringData) throws Exception {
+    private void sendRequest(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
+                             OpMonitoringData opMonitoringData) throws Exception {
         log.trace("sendRequest {}", OP_MONITOR_ADDRESS);
 
         URI opMonitorUri;
@@ -149,7 +148,7 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
 
             sender.doPost(opMonitorUri, in, AbstractHttpSender.CHUNKED_LENGTH,
-                    servletRequest.getHeader(MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE));
+                    servletRequest.getHeaders().get(MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE));
 
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {

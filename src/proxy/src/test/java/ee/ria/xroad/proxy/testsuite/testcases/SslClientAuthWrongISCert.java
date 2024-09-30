@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -35,7 +35,6 @@ import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -65,7 +64,7 @@ public class SslClientAuthWrongISCert extends SslMessageTestCase {
 
             @Override
             public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
-                return Arrays.asList(TestCertUtil.getProducer().certChain[0]);
+                return List.of(TestCertUtil.getProducer().certChain[0]);
             }
         });
 

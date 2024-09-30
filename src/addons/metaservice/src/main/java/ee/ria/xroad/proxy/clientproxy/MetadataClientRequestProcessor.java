@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,13 +26,13 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.metadata.CentralServiceListType;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ClientType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
-import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -41,23 +41,18 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Streams;
 import com.google.common.net.MediaType;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CENTRAL_SERVICES;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_CLIENTS;
 
 /**
  * Soap metadata client request processor
@@ -81,40 +76,23 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
 
     private final String target;
 
-    MetadataClientRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response) {
+    MetadataClientRequestProcessor(String target, RequestWrapper request, ResponseWrapper response) {
         super(request, response, null);
 
         this.target = target;
     }
 
     public boolean canProcess() {
-        switch (target) {
-            case LIST_CLIENTS: // $FALL-THROUGH$
-            case LIST_CENTRAL_SERVICES:
-                return true;
-            default:
-                return false;
-        }
+        // $FALL-THROUGH$
+        return target.equals(LIST_CLIENTS);
     }
 
     @Override
     public void process() throws Exception {
-        switch (target) {
-            case LIST_CLIENTS:
-                handleListClients();
-                return;
-            case LIST_CENTRAL_SERVICES:
-                handleListCentralServices();
-                return;
-            default: // to nothing
-                break;
+        // to nothing
+        if (target.equals(LIST_CLIENTS)) {
+            handleListClients();
         }
-    }
-
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        return null; // nothing to return
     }
 
     private void handleListClients() throws Exception {
@@ -129,7 +107,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
                     client.setId(m.getId());
                     client.setName(m.getName());
                     return client;
-                }).collect(Collectors.toList()));
+                }).toList());
 
         if (acceptsJson()) {
             writeResponseJson(list);
@@ -138,36 +116,23 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
-    private void handleListCentralServices() throws Exception {
-        log.trace("handleListCentralServices()");
-
-        String instanceIdentifier = getInstanceIdentifierFromRequest();
-
-        CentralServiceListType list = OBJECT_FACTORY.createCentralServiceListType();
-        list.getCentralService().addAll(GlobalConf.getCentralServices(instanceIdentifier));
-
-        writeResponseXml(OBJECT_FACTORY.createCentralServiceList(list));
-    }
-
     private boolean acceptsJson() {
-        return acceptsJson(servletRequest.getHeaders("Accept"));
+        return acceptsJson(jRequest.getHeaders().getValues("Accept"));
     }
 
     private void writeResponseXml(Object object) throws Exception {
-        servletResponse.setContentType(MimeTypes.TEXT_XML_UTF8);
-        marshal(object, servletResponse.getOutputStream());
+        jResponse.setContentType(MimeTypes.TEXT_XML_UTF8);
+        marshal(object, jResponse.getOutputStream());
     }
 
     private void writeResponseJson(Object object) throws Exception {
-        servletResponse.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        servletResponse.setContentType(
-                MimeUtils.contentTypeWithCharset(MimeTypes.JSON, StandardCharsets.UTF_8.name().toLowerCase()));
-        MAPPER.writeValue(servletResponse.getOutputStream(), object);
+        jResponse.setContentType(MimeUtils.contentTypeWithCharset(MimeTypes.JSON,
+                StandardCharsets.UTF_8.name().toLowerCase()));
+        MAPPER.writeValue(jResponse.getOutputStream(), object);
     }
 
-    private String getInstanceIdentifierFromRequest() {
-        String instanceIdentifier =
-                servletRequest.getParameter(PARAM_INSTANCE_IDENTIFIER);
+    private String getInstanceIdentifierFromRequest() throws Exception {
+        String instanceIdentifier = jRequest.getParameter(PARAM_INSTANCE_IDENTIFIER);
         if (StringUtils.isBlank(instanceIdentifier)) {
             instanceIdentifier = GlobalConf.getInstanceIdentifier();
         }
@@ -177,7 +142,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
 
     /**
      * Parses the HTTP "Accept" header, checks if it contains application/json media type.
-     *
+     * <p>
      * Note. Possible media type parameters are ignored since application/json does not define any.
      * Also the quality (q) parameter is ignored, meaning that
      * <pre>Accept: text/xml;q=1.0, application/json;q=0.9</pre>
@@ -185,11 +150,9 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
      */
     static boolean acceptsJson(final Enumeration<String> accept) {
         return accept != null && Streams.stream(Iterators.forEnumeration(accept))
-                .flatMap(s -> Arrays.asList(s.split("\\s*,\\s*")).stream())
+                .flatMap(s -> Arrays.stream(s.split("\\s*,\\s*")))
                 .map(MediaType::parse)
-                .filter(m -> APPLICATION_JSON.equals(m.withoutParameters()))
-                .findAny()
-                .isPresent();
+                .anyMatch(m -> APPLICATION_JSON.equals(m.withoutParameters()));
     }
 
     private static final MediaType APPLICATION_JSON = MediaType.JSON_UTF_8.withoutParameters();
