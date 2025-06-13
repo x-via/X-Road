@@ -36,10 +36,10 @@ else
 							UPLOAD_UBUNTU=true
 							UBUNTU_VERSION="ubuntu22.04"
 							UBUNTU_RELEASE_NAME="jammy-$UBUNTU_RELEASE_NAME"
-            			elif [ "$1" = "24" ] || [ "$1" = "24.04" ]; then
+            elif [ "$1" = "24" ] || [ "$1" = "24.04" ]; then
 							UPLOAD_UBUNTU=true
 							UBUNTU_VERSION="ubuntu24.04"
-							UBUNTU_RELEASE_NAME="jammy-$UBUNTU_RELEASE_NAME"
+							UBUNTU_RELEASE_NAME="noble-$UBUNTU_RELEASE_NAME"
 						else
 							echo "*** Erro: A versão \"$1\" do Ubuntu informada é inválida, digite $0 -h para obter ajuda." 1>&2
 							exit 1
