@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -35,7 +35,7 @@ public interface SigningKey {
 
     /**
      * Calculates signature.
-     * @param request singing request information
+     * @param request signing request information
      * @param digestAlgoId digest algorithm to use for signing
      * @throws Exception in case of any errors
      * @return the signature data

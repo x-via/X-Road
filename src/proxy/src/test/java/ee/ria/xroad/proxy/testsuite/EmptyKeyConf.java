@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -53,7 +53,7 @@ public class EmptyKeyConf implements KeyConfProvider {
 
     @Override
     public void setOcspResponses(List<X509Certificate> certs,
-            List<OCSPResp> response) throws Exception {
+                                 List<OCSPResp> response) throws Exception {
     }
 
     @Override

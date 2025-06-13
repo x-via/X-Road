@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -100,7 +100,7 @@ public class FileBasedOcspCache extends OcspCache {
         Path path = Paths.get(getOcspCachePath());
 
         try (DirectoryStream<Path> stream =
-                Files.newDirectoryStream(path, this::isOcspFile)) {
+                     Files.newDirectoryStream(path, this::isOcspFile)) {
             for (Path entry : stream) {
                 loadResponseFromFileIfNotExpired(entry.toFile(), new Date());
             }

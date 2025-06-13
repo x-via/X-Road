@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -32,16 +32,14 @@ import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -56,18 +54,19 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 public abstract class MessageProcessorBase {
 
     /** The servlet request. */
-    protected final HttpServletRequest servletRequest;
+    protected final RequestWrapper jRequest;
 
     /** The servlet response. */
-    protected final HttpServletResponse servletResponse;
+    protected final ResponseWrapper jResponse;
 
     /** The http client instance. */
     protected final HttpClient httpClient;
 
-    protected MessageProcessorBase(HttpServletRequest servletRequest,
-            HttpServletResponse servletResponse, HttpClient httpClient) {
-        this.servletRequest = servletRequest;
-        this.servletResponse = servletResponse;
+    protected MessageProcessorBase(RequestWrapper request,
+                                   ResponseWrapper response,
+                                   HttpClient httpClient) {
+        this.jRequest = request;
+        this.jResponse = response;
         this.httpClient = httpClient;
 
         GlobalConf.verifyValidity();
@@ -97,11 +96,6 @@ public abstract class MessageProcessorBase {
      * @throws Exception in case of any errors
      */
     public abstract void process() throws Exception;
-
-    /**
-     * @return MessageInfo object for the request message being processed
-     */
-    public abstract MessageInfo createRequestMessageInfo();
 
     /**
      * Update operational monitoring data with SOAP message header data and
@@ -184,18 +178,18 @@ public abstract class MessageProcessorBase {
     /**
      * Logs a warning if identifier contains invalid characters.
      * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
-     * @see ee.ria.xroad.common.validation.EncodedIdentifierValidator
+     * @see ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator;
      */
     protected static boolean checkIdentifier(final XRoadId id) {
         if (id != null) {
             if (!validateIdentifierField(id.getXRoadInstance())) {
-                log.warn("Invalid character(s) in identifier {}", id.toString());
+                log.warn("Invalid character(s) in identifier {}", id);
                 return false;
             }
 
             for (String f : id.getFieldsForStringFormat()) {
                 if (f != null && !validateIdentifierField(f)) {
-                    log.warn("Invalid character(s) in identifier {}", id.toString());
+                    log.warn("Invalid character(s) in identifier {}", id);
                     return false;
                 }
             }

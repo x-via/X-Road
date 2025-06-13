@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -109,7 +109,7 @@ public class Message {
     public boolean checkConsistency(Message anotherMessage) {
         if (soap == null
                 && (anotherMessage == null
-                    || anotherMessage.soap == null)) {
+                || anotherMessage.soap == null)) {
             return true;
         }
 
@@ -171,8 +171,8 @@ public class Message {
                     try {
                         soap = new SoapParserImpl().parse(
                                 contentTypeWithCharset(
-                                    bd.getMimeType(),
-                                    bd.getCharset()
+                                        bd.getMimeType(),
+                                        bd.getCharset()
                                 ),
                                 is);
                     } catch (Exception e) {

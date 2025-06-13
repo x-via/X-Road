@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -36,7 +36,7 @@ import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
-import javax.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPBody;
 
 import java.util.Arrays;
 import java.util.List;
@@ -61,16 +61,16 @@ public class AllowedMethodsMessage extends MessageTestCase {
         requestFileName = "allowedMethods.query";
     }
 
-    private List<ServiceId> expectedServices = Arrays.asList(
+    private List<ServiceId.Conf> expectedServices = Arrays.asList(
             createService("getRandom"),
             createService("helloService"),
             createService("ListMembers"));
 
-    private final ClientId expectedClientQuery =
-            ClientId.create("EE", "BUSINESS", "consumer");
+    private final ClientId.Conf expectedClientQuery =
+            ClientId.Conf.create("EE", "BUSINESS", "consumer");
 
-    private final ClientId expectedProviderQuery =
-            ClientId.create("EE", "BUSINESS", "producer");
+    private final ClientId.Conf expectedProviderQuery =
+            ClientId.Conf.create("EE", "BUSINESS", "producer");
 
 
     @Override
@@ -83,7 +83,7 @@ public class AllowedMethodsMessage extends MessageTestCase {
         // even though the MetadataServiceHandler uses the same MimeUtils value
         List<String> expectedContentTypes = MetaserviceTestUtil.xmlUtf8ContentTypes();
 
-        List<ServiceId> resultServices = verifyAndGetSingleBodyElementOfType(body, MethodListType.class).getService();
+        List<ServiceId.Conf> resultServices = verifyAndGetSingleBodyElementOfType(body, MethodListType.class).getService();
 
         assertThat("Wrong amount of allowed services",
                 resultServices.size(), is(expectedServices.size()));
@@ -100,8 +100,8 @@ public class AllowedMethodsMessage extends MessageTestCase {
         ServerConf.reload(new TestSuiteServerConf() {
 
             @Override
-            public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                                       DescriptionType descriptionType) {
+            public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                                            DescriptionType descriptionType) {
 
                 assertThat("Wrong client in query", client, is(expectedClientQuery));
 

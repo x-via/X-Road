@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,4 +28,5 @@ package ee.ria.xroad.proxy.testutil;
 /**
  * JUnit category for integration tests
  */
-public interface IntegrationTest { }
+public interface IntegrationTest {
+}

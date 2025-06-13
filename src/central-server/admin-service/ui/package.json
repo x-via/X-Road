@@ -1,0 +1,34 @@
+{
+  "name": "xroad-centralserver-admin-ui",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite --host",
+    "build": "pnpm run generate-types && vitest --run &&  vite build",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "test": "vitest",
+    "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "format": "prettier --write src/",
+    "license-check": "license-check-and-add check -f license-check-and-add-config.json",
+    "license-add": "license-check-and-add add -f license-check-and-add-config.json",
+    "bundle-openapi": "rm -rf src/openapi-types && swagger-cli bundle -t yaml -o ./build/openapi/openapi-definition-bundled.yaml ../../openapi-model/src/main/resources/openapi-definition.yaml",
+    "generate-types": "pnpm run bundle-openapi && openapi --input ./build/openapi/openapi-definition-bundled.yaml --output ./src/openapi-types --exportCore false --exportServices false"
+  },
+  "dependencies": {
+    "@niis/shared-ui": "workspace:*",
+    "dayjs": "^1.11.11",
+    "is-ip": "^5.0.1"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-cli": "~4.0.4",
+    "openapi-types": "^12.1.3"
+  },
+  "engines": {
+    "npm": "use-pnpm",
+    "yarn": "use-pnpm",
+    "node": ">=18 <=20",
+    "pnpm": ">=8"
+  }
+}

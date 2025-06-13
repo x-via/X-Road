@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -44,10 +44,17 @@ import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.soap.SOAPMessage;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -65,14 +72,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.ext.DefaultHandler2;
 import org.xml.sax.ext.LexicalHandler;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXTransformerFactory;
@@ -94,9 +94,9 @@ import java.util.UUID;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.GET_WSDL;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.ALLOWED_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.GET_WSDL;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
 
 @Slf4j
 class MetadataServiceHandlerImpl implements ServiceHandler {
@@ -144,27 +144,25 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     @Override
     @SneakyThrows
     public boolean canHandle(ServiceId requestServiceId,
-            ProxyMessage requestProxyMessage) {
+                             ProxyMessage requestProxyMessage) {
 
         requestMessage = requestProxyMessage.getSoap();
 
-        switch (requestServiceId.getServiceCode()) {
-            case LIST_METHODS: // $FALL-THROUGH$
-            case ALLOWED_METHODS: // $FALL-THROUGH$
-            case GET_WSDL:
+        return switch (requestServiceId.getServiceCode()) {
+            case LIST_METHODS, ALLOWED_METHODS, GET_WSDL -> {
                 requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(
                         requestProxyMessage.getSoapContentType(),
                         requestProxyMessage.getSoapContent());
-                return true;
-            default:
-                return false;
-        }
+                yield true;
+            }
+            default -> false;
+        };
     }
 
     @Override
-    public void startHandling(HttpServletRequest servletRequest,
-            ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
-            OpMonitoringData opMonitoringData) throws Exception {
+    public void startHandling(RequestWrapper servletRequest,
+                              ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
+                              OpMonitoringData opMonitoringData) throws Exception {
 
         final String serviceCode = requestMessage.getService().getServiceCode();
 
@@ -268,7 +266,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         try (InputStream in = modifyWsdl(getWsdl(url, serviceId))) {
             Map<String, String> additionalHeaders = new HashMap<>();
             additionalHeaders.put("Content-Transfer-Encoding", "binary");
-            additionalHeaders.put("Content-ID", "<wsdl=" + UUID.randomUUID().toString() + "@x-road.eu>");
+            additionalHeaders.put("Content-ID", "<wsdl=" + UUID.randomUUID() + "@x-road.eu>");
             responseEncoder.soap(SoapUtils.toResponse(request), new HashMap<>());
             responseEncoder.attachment(MimeTypes.TEXT_XML, in, additionalHeaders);
         }
@@ -289,7 +287,8 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     private static SoapMessageImpl createMethodListResponse(
             SoapMessageImpl requestMessage,
             final JAXBElement<MethodListType> methodList) throws Exception {
-        SoapMessageImpl responseMessage = SoapUtils.toResponse(requestMessage,
+
+        return SoapUtils.toResponse(requestMessage,
                 new SOAPCallback() {
                     @Override
                     public void call(SOAPMessage soap) throws Exception {
@@ -297,8 +296,6 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
                         marshal(methodList, soap.getSOAPBody());
                     }
                 });
-
-        return responseMessage;
     }
 
     private static void marshal(Object object, Node out) throws Exception {

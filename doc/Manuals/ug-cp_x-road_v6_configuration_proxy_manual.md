@@ -1,10 +1,6 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
-
----
-
 # X-Road: Configuration Proxy Manual
 
-Version: 2.10  
+Version: 2.12  
 Doc. ID: UG-CP
 
 ## Version History
@@ -28,37 +24,43 @@ Doc. ID: UG-CP
 | 18.02.2021 | 2.8     | Add Ubuntu 20.04 in supported platforms                                                                                                                                                       | Petteri Kivimäki |
 | 01.07.2021 | 2.9     | Update 3rd party key server                                                                                                                                                                   | Petteri Kivimäki |
 | 26.09.2022 | 2.10    | Remove Ubuntu 18.04 support                                                                                                                                                                   | Andres Rosenthal |
+| 30.10.2023 | 2.11    | Configuring TLS Certificates                                                                                                                                                                  | Madis Loitmaa    |
+| 25.04.2024 | 2.12    | Updated for Ubuntu 24.04                                                                                                                                                                       | Madis Loitmaa    |
 
 
 ## Table of Contents
 
 <!-- vim-markdown-toc GFM -->
 
-* [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-  * [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
-* [2 Installation](#2-installation)
-  * [2.1 Supported Platforms](#21-supported-platforms)
-  * [2.2 Reference Data](#22-reference-data)
-  * [2.3 Requirements for the Configuration Proxy](#23-requirements-for-the-configuration-proxy)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Installation](#25-installation)
-  * [2.6 Post-Installation Checks](#26-post-installation-checks)
-  * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-* [3 Configuration](#3-configuration)
-  * [3.1 Prerequisites](#31-prerequisites)
-    * [3.1.1 Security Token Activation](#311-security-token-activation)
-    * [3.1.2 User Access Privileges](#312-user-access-privileges)
-  * [3.2 General Configuration](#32-general-configuration)
-    * [3.2.1 Configuration Structure of the Instances](#321-configuration-structure-of-the-instances)
-  * [3.3 Proxy Instance Reference Data](#33-proxy-instance-reference-data)
-  * [3.4 Proxy Instance Configuration](#34-proxy-instance-configuration)
-  * [3.5 Additional Configuration](#35-additional-configuration)
-    * [3.5.1 Changing the Validity Interval](#351-changing-the-validity-interval)
-    * [3.5.2 Deleting the Signing Keys](#352-deleting-the-signing-keys)
-    * [3.5.3 Changing the Active Signing Key](#353-changing-the-active-signing-key)
+- [X-Road: Configuration Proxy Manual](#x-road-configuration-proxy-manual)
+  - [Version History](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Target Audience](#11-target-audience)
+    - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+    - [1.3 References](#13-references)
+    - [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
+  - [2 Installation](#2-installation)
+    - [2.1 Supported Platforms](#21-supported-platforms)
+    - [2.2 Reference Data](#22-reference-data)
+    - [2.3 Requirements for the Configuration Proxy](#23-requirements-for-the-configuration-proxy)
+    - [2.4 Preparing OS](#24-preparing-os)
+    - [2.5 Installation](#25-installation)
+    - [2.6 Post-Installation Checks](#26-post-installation-checks)
+    - [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
+    - [2.8 Configuring TLS Certificates](#28-configuring-tls-certificates)
+  - [3 Configuration](#3-configuration)
+    - [3.1 Prerequisites](#31-prerequisites)
+      - [3.1.1 Security Token Activation](#311-security-token-activation)
+      - [3.1.2 User Access Privileges](#312-user-access-privileges)
+    - [3.2 General Configuration](#32-general-configuration)
+      - [3.2.1 Configuration Structure of the Instances](#321-configuration-structure-of-the-instances)
+    - [3.3 Proxy Instance Reference Data](#33-proxy-instance-reference-data)
+    - [3.4 Proxy Instance Configuration](#34-proxy-instance-configuration)
+    - [3.5 Additional Configuration](#35-additional-configuration)
+      - [3.5.1 Changing the Validity Interval](#351-changing-the-validity-interval)
+      - [3.5.2 Deleting the Signing Keys](#352-deleting-the-signing-keys)
+      - [3.5.3 Changing the Active Signing Key](#353-changing-the-active-signing-key)
 
 <!-- vim-markdown-toc -->
 
@@ -92,7 +94,7 @@ The configuration proxy can be configured to mediate several global configuratio
 
 ### 2.1 Supported Platforms
 
-The configuration proxy runs on the Ubuntu Server 20.04 LTS or 22.04 LTS operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
+The configuration proxy runs on the Ubuntu Server 20.04 LTS, 22.04 or 24.04 LTS operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local](https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local).
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -103,14 +105,14 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 **Caution:** Data necessary for the functioning of the operating system is not included.
 
-| Ref |                                                     | Explanation                                                                                                                                                                                                                                                                                |
-|-----|-----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.0 | Ubuntu 20.04, 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements.                                                                                                                                                                                                                                                                      |
-| 1.1 | https://artifactory.niis.org/xroad-release-deb      | X-Road package repository.                                                                                                                                                                                                                                                                 |
-| 1.2 | https://artifactory.niis.org/api/gpg/key/public     | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
-| 1.3 | TCP 80                                              | Global configuration distribution.<br>Ports for inbound connections (from the external network to the configuration proxy).                                                                                                                                                                |
-| 1.4 | TCP 80                                              | Global configuration download.<br>Ports for outbound connections (from the configuration proxy to the external network).                                                                                                                                                                   |
-| 1.5 |                                                     | Configuration proxy’s public IP address, NAT address.                                                                                                                                                                                                                                      |
+| Ref |                                                       | Explanation                                                                                                                                                                                                                                                                                |
+|-----|-------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0 | Ubuntu 20.04, 64bit<br>2GB RAM, 3GB free disk space   | Minimum requirements.                                                                                                                                                                                                                                                                      |
+| 1.1 | https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local         | X-Road package repository.                                                                                                                                                                                                                                                                 |
+| 1.2 | https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
+| 1.3 | TCP 80                                                | Global configuration distribution.<br>Ports for inbound connections (from the external network to the configuration proxy).                                                                                                                                                                |
+| 1.4 | TCP 80                                                | Global configuration download.<br>Ports for outbound connections (from the configuration proxy to the external network).                                                                                                                                                                   |
+| 1.5 |                                                       | Configuration proxy’s public IP address, NAT address.                                                                                                                                                                                                                                      |
 
 
 ### 2.3 Requirements for the Configuration Proxy
@@ -143,11 +145,11 @@ To install the X-Road configuration proxy software, follow these steps.
 
 1.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-        curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+        curl -sS https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/xvia-debian-local.gpg
 
 2.  Add X-Road package repository (**reference data: 1.1**)
 
-        sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+        sudo apt-add-repository -y "deb https://rw3tecnologia.jfrog.io/artifactory/xvia-debian-local $(lsb_release -sc)-current main"
 
 3.  Issue the following commands to install the configuration proxy packages:
 
@@ -159,14 +161,13 @@ To install the X-Road configuration proxy software, follow these steps.
 The installation is successful if the 'xroad-signer' service is started, the 'xroad-confproxy' cron job is added, and the configuration proxy management utilities are available from the command line.
 
 * Check from the command line that the 'xroad-signer' service is in the running state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the configuration proxy since it operates in one-shot mode.
+  
+  ```bash
+  systemctl list-units "xroad*" 
 
-  * Ubuntu 20.04 or 22.04
-    ```bash
-    systemctl list-units "xroad*" 
-
-    UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
-    xroad-signer.service     loaded active running X-Road signer
-    ```
+  UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
+  xroad-signer.service     loaded active running X-Road signer
+  ```
 
 * Check from the command line that the 'xroad-confproxy' cron job is present (example output follows):
 
@@ -229,6 +230,17 @@ Parameter   | Type    | Default Value | Explanation
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.  
 **Note 2:** The item separator of the type STRING LIST is ",".
 
+### 2.8 Configuring TLS Certificates
+
+The installation process creates a self-signed TLS certificate for serving configurations over HTTPS. However, self-signed certificates are not recommended for production use, and should be substituted with certificate issued by a trusted Certificate Authority (CA).
+
+To configure the configuration proxy to use a certificate issued by a trusted CA, replace the existing certificate files (`confproxy.crt`) and its associated private key (`confproxy.key`), located in the `/etc/xroad/ssl/` directory.
+
+Reload the nginx service for the certificate change to take effect.
+
+```bash
+systemctl reload nginx
+```
 
 ## 3 Configuration
 
@@ -349,9 +361,10 @@ Validity interval: 600 s.
 anchor.xml
 ================================================
 'anchor.xml' could not be loaded: IOError: /etc/xroad/confproxy/PROXY/anchor.xml (No such file or directory)
-Configuration URL
+Configuration URLs
 ================================================
 http://1.2.3.4/PROXY/conf
+https://1.2.3.4/PROXY/conf
 Signing keys and certificates
 ================================================
 active-signing-key-id:
@@ -402,9 +415,10 @@ anchor.xml
 Instance identifier: AA
 Generated at: UTC 2014-11-17 09:28:56
 Hash: 3A:3D:B2:A4:D3:FC:E8:08:7E:EA:8A:92:5C:6E:92:0C:70:C8
-Configuration URL
+Configuration URLs
 ================================================
 http://1.2.3.4/PROXY/conf
+https://1.2.3.4/PROXY/conf
 Signing keys and certificates
 ================================================
 active-signing-key-id:

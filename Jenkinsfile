@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    environment {
+        DOCKER_GID = """${sh(returnStdout: true, script: 'getent group docker | cut -d: -f3')}""".trim()
+    }
     stages {
         stage('Output build parameters') {
             steps {
@@ -35,20 +38,17 @@ pipeline {
             }
             agent {
                 dockerfile {
-                    dir 'src/packages/docker-compile'
-                    additionalBuildArgs '--build-arg uid=$(id -u) --build-arg gid=$(id -g)'
+                    dir 'src/packages/docker-jenkins-compile'
+                    additionalBuildArgs  '--build-arg JENKINSUID=`id -u jenkins` --build-arg JENKINSGID=`id -g jenkins` --build-arg DOCKERGID=${DOCKER_GID}'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock --group-add ${DOCKER_GID} --add-host=host.docker.internal:host-gateway'
                     reuseNode true
                 }
             }
             environment {
-                GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dsonar.host.url=https://sonarqube.niis.org'
-                JAVA_HOME = '/usr/lib/jvm/java-8-openjdk-amd64/'
+                GRADLE_OPTS = '-Dorg.gradle.daemon=false'
             }
             steps {
-                sh 'cd src && ./update_ruby_dependencies.sh'
-                withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
-                    sh 'cd src && ~/.rvm/bin/rvm jruby-$(cat .jruby-version) do ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${ghprbPullId} -Dsonar.pullrequest.branch=${ghprbSourceBranch} -Dsonar.pullrequest.base=${ghprbTargetBranch} --stacktrace --no-daemon build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate sonarqube -Pfrontend-unit-tests -Pfrontend-npm-audit'
-                }
+                sh 'cd src && ./gradlew --stacktrace --no-daemon build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoAggregatedReport -Pfrontend-unit-tests -Pfrontend-npm-audit -PintTestProfilesInclude="ci"'
             }
         }
         stage('Ubuntu focal packaging') {
@@ -125,6 +125,26 @@ pipeline {
             agent {
                 dockerfile {
                     dir 'src/packages/docker/rpm-el8'
+                    args '-e HOME=/workspace/src/packages'
+                    reuseNode true
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-rpm.sh'
+                }
+            }
+        }
+        stage('RHEL 9 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/rpm-el9'
                     args '-e HOME=/workspace/src/packages'
                     reuseNode true
                 }

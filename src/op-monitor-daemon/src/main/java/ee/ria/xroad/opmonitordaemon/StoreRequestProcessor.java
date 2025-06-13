@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,14 +26,13 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.servlet.http.HttpServletRequest;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -46,27 +45,32 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochSecond;
 @Slf4j
 class StoreRequestProcessor {
 
-    private static final Gson GSON = JsonUtils.getSerializer();
+    private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
-    /** The servlet request. */
-    private HttpServletRequest servletRequest;
+    /**
+     * The servlet request.
+     */
+    private RequestWrapper request;
 
-    /** The registry of health data. */
+    /**
+     * The registry of health data.
+     */
     private MetricRegistry healthMetricRegistry;
 
-    StoreRequestProcessor(HttpServletRequest servletRequest,
-            MetricRegistry healthMetricRegistry) {
-        this.servletRequest = servletRequest;
+    StoreRequestProcessor(RequestWrapper request,
+                          MetricRegistry healthMetricRegistry) {
+        this.request = request;
         this.healthMetricRegistry = healthMetricRegistry;
     }
 
     /**
      * Processes the incoming message: stores the data and updates the related
      * statistics.
+     *
      * @throws Exception in case of any errors
      */
     void process() throws Exception {
-        String rawJson = IOUtils.toString(servletRequest.getInputStream(),
+        String rawJson = IOUtils.toString(request.getInputStream(),
                 StandardCharsets.UTF_8);
 
         log.trace("Incoming JSON: {}", rawJson);
@@ -93,7 +97,7 @@ class StoreRequestProcessor {
         OperationalDataRecords records;
 
         try {
-            records = GSON.fromJson(rawJsonData, OperationalDataRecords.class);
+            records = OBJECT_READER.readValue(rawJsonData, OperationalDataRecords.class);
         } catch (Exception e) {
             throw new Exception("Received invalid request", e);
         }

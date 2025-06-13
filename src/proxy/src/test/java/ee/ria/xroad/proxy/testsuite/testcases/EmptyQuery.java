@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -51,9 +51,9 @@ public class EmptyQuery extends MessageTestCase {
 
     @Override
     protected InputStream getQueryInputStream(String fileName,
-            boolean addUtf8Bom) throws Exception {
+                                              boolean addUtf8Bom) throws Exception {
         return new ByteArrayInputStream(addUtf8Bom
-                ? ByteOrderMark.UTF_8.getBytes() : new byte[] {});
+                ? ByteOrderMark.UTF_8.getBytes() : new byte[]{});
     }
 
     @Override

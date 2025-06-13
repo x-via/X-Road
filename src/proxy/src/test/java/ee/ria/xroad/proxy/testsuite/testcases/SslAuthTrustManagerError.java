@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -45,8 +45,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 public class SslAuthTrustManagerError extends IsolatedSslMessageTestCase {
 
     /**
-    * Constructs the test case.
-    */
+     * Constructs the test case.
+     */
     public SslAuthTrustManagerError() {
         requestFileName = "getstate.query";
         responseFile = "getstate.answer";
@@ -57,7 +57,7 @@ public class SslAuthTrustManagerError extends IsolatedSslMessageTestCase {
         ServerConf.reload(new TestSuiteServerConf());
         GlobalConf.reload(new TestSuiteGlobalConf() {
             @Override
-            public SecurityServerId getServerId(X509Certificate cert) {
+            public SecurityServerId.Conf getServerId(X509Certificate cert) {
                 return null;
             }
         });

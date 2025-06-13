@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,7 +31,7 @@ public class ApiValidationResult {
     private ValidationType validationType;
 
     public ApiValidationResult(ValidationType validationType, boolean isSuccess,
-            String errorOutput) {
+                               String errorOutput) {
         this.validationType = validationType;
         this.isSuccess = isSuccess;
         this.errorOutput = errorOutput;
@@ -47,7 +47,7 @@ public class ApiValidationResult {
     }
 
     public static ApiValidationResult fail(ValidationType validationType,
-            String errorOutput) {
+                                           String errorOutput) {
         return new ApiValidationResult(validationType, false, errorOutput);
     }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -38,6 +38,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
@@ -45,9 +47,6 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -85,10 +84,10 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    protected AbstractClientMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
-            throws Exception {
-        super(servletRequest, servletResponse, httpClient);
+    protected AbstractClientMessageProcessor(RequestWrapper request, ResponseWrapper response,
+                                             HttpClient httpClient, IsAuthenticationData clientCert,
+                                             OpMonitoringData opMonitoringData) throws Exception {
+        super(request, response, httpClient);
 
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
@@ -137,12 +136,12 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         // Preserve the original content type in the "x-original-content-type"
         // HTTP header, which will be used to send the request to the
         // service provider
-        httpSender.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, servletRequest.getContentType());
+        httpSender.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, jRequest.getContentType());
 
         return addresses;
     }
 
-    private void updateOpMonitoringServiceSecurityServerAddress(URI addresses[], HttpSender httpSender) {
+    private void updateOpMonitoringServiceSecurityServerAddress(URI[] addresses, HttpSender httpSender) {
         if (addresses.length == 1) {
             opMonitoringData.setServiceSecurityServerAddress(addresses[0].getHost());
         } else {

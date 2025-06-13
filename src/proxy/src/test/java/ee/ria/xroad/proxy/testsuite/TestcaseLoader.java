@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -73,6 +73,7 @@ final class TestcaseLoader {
                 LOG.error(e.toString());
             }
         }
+        testsToRun.sort(Comparator.comparing(mtc -> mtc.getClass().getSimpleName()));
         return testsToRun;
     }
 
@@ -115,7 +116,7 @@ final class TestcaseLoader {
         return classes;
     }
 
-    private static class SortTestCasesAlphabetically
+    private static final class SortTestCasesAlphabetically
             implements Comparator<MessageTestCase> {
         @Override
         public int compare(MessageTestCase a, MessageTestCase b) {

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -69,25 +69,28 @@ public class MessageBodyManipulatorTest {
     @Setter
     private class TestableMessageBodyManipulator extends MessageBodyManipulator {
         TestableMessageBodyManipulator(boolean globalBodyLogging,
-                                           Collection<ClientId> localOverrides,
-                                           Collection<ClientId> remoteOverrides) {
+                                       Collection<ClientId> localOverrides,
+                                       Collection<ClientId> remoteOverrides) {
             setConfigurator(new Configurator() {
                 @Override
                 public Collection<ClientId> getLocalProducerOverrides() {
                     return localOverrides;
                 }
+
                 @Override
                 public Collection<ClientId> getRemoteProducerOverrides() {
                     return remoteOverrides;
                 }
+
                 @Override
                 public boolean isMessageBodyLoggingEnabled() {
                     return globalBodyLogging;
                 }
             });
         }
+
         TestableMessageBodyManipulator(boolean globalBodyLogging) {
-            this (globalBodyLogging, new ArrayList<ClientId>(), new ArrayList<ClientId>());
+            this(globalBodyLogging, new ArrayList<ClientId>(), new ArrayList<ClientId>());
         }
     }
 
@@ -189,9 +192,9 @@ public class MessageBodyManipulatorTest {
      * that when we do not remove body, it is not empty
      */
     private void assertNodeEmptinessAfterManipulation(SoapMessageImpl query,
-                                                     boolean clientSide,
-                                                     String elementName,
-                                                     boolean keepBody) throws Exception {
+                                                      boolean clientSide,
+                                                      String elementName,
+                                                      boolean keepBody) throws Exception {
         String loggableMessage = new TestableMessageBodyManipulator(keepBody)
                 .getLoggableMessageText(new SoapLogMessage(query, null, clientSide));
         log.debug("loggable message with body"
@@ -229,21 +232,21 @@ public class MessageBodyManipulatorTest {
     @Test
     public void clientIdSearching() throws Exception {
         MessageBodyManipulator manipulator = new MessageBodyManipulator();
-        ClientId ss1 = ClientId.create("instance", "memberclass", "membercode", "ss1");
-        ClientId cmember = ClientId.create("instance", "memberclass", "membercode", null);
-        ClientId ss2 = ClientId.create("instance", "memberclass", "membercode", "ss2");
-        ClientId cmember2 = ClientId.create("instance", "memberclass", "membercode2", null);
-        List<ClientId> coll1 = Arrays.asList(ss1, cmember);
+        ClientId.Conf ss1 = ClientId.Conf.create("instance", "memberclass", "membercode", "ss1");
+        ClientId.Conf cmember = ClientId.Conf.create("instance", "memberclass", "membercode", null);
+        ClientId.Conf ss2 = ClientId.Conf.create("instance", "memberclass", "membercode", "ss2");
+        ClientId.Conf cmember2 = ClientId.Conf.create("instance", "memberclass", "membercode2", null);
+        List<ClientId.Conf> coll1 = Arrays.asList(ss1, cmember);
 
         assertTrue(manipulator.isClientInCollection(ss1, coll1));
         assertTrue(manipulator.isClientInCollection(
-                ClientId.create("instance", "memberclass", "membercode", "ss1"),
+                ClientId.Conf.create("instance", "memberclass", "membercode", "ss1"),
                 coll1));
         assertFalse(manipulator.isClientInCollection(ss2, coll1));
         assertTrue(manipulator.isClientInCollection(cmember, coll1));
         assertFalse(manipulator.isClientInCollection(cmember2, coll1));
         assertFalse(manipulator.isClientInCollection(
-                ClientId.create("-", "memberclass", "membercode", "ss1"),
+                ClientId.Conf.create("-", "memberclass", "membercode", "ss1"),
                 coll1));
 
         // subsystem does not match to subsystem-less member

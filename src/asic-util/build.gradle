@@ -1,8 +1,8 @@
 dependencies {
-    implementation project(':common-util')
-    implementation project(':common-verifier')
-    implementation "xerces:xercesImpl:$xercesVersion"
+    implementation project(':common:common-message')
+    implementation project(':common:common-verifier')
+    implementation libs.xerces.impl
 
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
 }
 

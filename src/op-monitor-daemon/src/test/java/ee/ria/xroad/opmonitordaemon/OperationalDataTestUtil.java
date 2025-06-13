@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.JsonUtils;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectReader;
 import org.hibernate.query.Query;
 
 import java.util.ArrayList;
@@ -43,15 +43,16 @@ import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.storeRec
 // Utilities for the various levels of tests against
 // OperationalMonitoringRecord that use the HSQLDB in-memory database.
 final class OperationalDataTestUtil {
-    static final Gson GSON = JsonUtils.getSerializer();
+    static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
-    private OperationalDataTestUtil() { }
+    private OperationalDataTestUtil() {
+    }
 
     static void prepareDatabase() throws Exception {
         System.setProperty(SystemProperties.DATABASE_PROPERTIES,
                 "src/test/resources/hibernate.properties");
         doInTransaction(session -> {
-            Query q = session.createSQLQuery(
+            Query q = session.createNativeQuery(
                     // Completely wipe out the database. Assuming that HSQLDB
                     // is used for testing.
                     "TRUNCATE SCHEMA public AND COMMIT");
@@ -73,7 +74,7 @@ final class OperationalDataTestUtil {
         return rec;
     }
 
-    static String formatInvalidOperationalDataAsJson()  {
+    static String formatInvalidOperationalDataAsJson() {
         return new StringBuilder()
                 .append("{\"clientMemberCode\":\"00000001\",")
                 .append("\"serviceXRoadInstance\":\"XTEE-CI-XM\",")
@@ -123,12 +124,12 @@ final class OperationalDataTestUtil {
     }
 
     static void storeFullOperationalDataRecords(int count,
-            long monitoringDataTs) throws Exception {
+                                                long monitoringDataTs) throws Exception {
         List<OperationalDataRecord> records = new ArrayList<>();
         OperationalDataRecord record;
 
         for (int i = 0; i < count; i++) {
-            record = GSON.fromJson(formatFullOperationalDataAsJson(),
+            record = OBJECT_READER.readValue(formatFullOperationalDataAsJson(),
                     OperationalDataRecord.class);
             record.setMonitoringDataTs(monitoringDataTs);
 
@@ -139,8 +140,8 @@ final class OperationalDataTestUtil {
     }
 
     static void storeFullOperationalDataRecord(long monitoringDataTs,
-            ClientId client, ClientId serviceProvider) throws Exception {
-        OperationalDataRecord record = GSON.fromJson(
+                                               ClientId client, ClientId serviceProvider) throws Exception {
+        OperationalDataRecord record = OBJECT_READER.readValue(
                 formatFullOperationalDataAsJson(), OperationalDataRecord.class);
 
         record.setMonitoringDataTs(monitoringDataTs);

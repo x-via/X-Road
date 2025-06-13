@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -255,8 +255,8 @@ public final class ModuleConf {
         PrivKeyAttributes privKeyAttributes = loadPrivKeyAttributes(section);
 
         log.debug("Read module configuration (UID = {}, library = {}, library_cant_create_os_threads = {}"
-                + ", os_locking_ok = {}, token_id_format = {}, pin_verification_per_signing = {}, batch_signing = {}"
-                + ", sign_mechanism = {}, pub_key_attributes = {}, priv_key_attributes = {})",
+                        + ", os_locking_ok = {}, token_id_format = {}, pin_verification_per_signing = {}, batch_signing = {}"
+                        + ", sign_mechanism = {}, pub_key_attributes = {}, priv_key_attributes = {})",
                 uid, library, libraryCantCreateOsThreads, osLockingOk, tokenIdFormat, verifyPin, batchSigning,
                 signMechanismName, pubKeyAttributes, privKeyAttributes);
 

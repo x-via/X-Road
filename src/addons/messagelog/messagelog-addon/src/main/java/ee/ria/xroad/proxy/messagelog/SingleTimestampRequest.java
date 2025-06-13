@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -46,7 +46,7 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
     private Signature signature;
 
     SingleTimestampRequest(Long logRecord) {
-        super(new Long[] {logRecord});
+        super(new Long[]{logRecord});
     }
 
     @Override

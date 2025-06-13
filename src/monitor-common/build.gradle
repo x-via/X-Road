@@ -1,14 +1,32 @@
-apply plugin: 'java'
+plugins {
+    id 'java-library'
+    alias(libs.plugins.protobuf)
+}
 
-repositories {
-    mavenCentral()
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java'
+            , 'build/generated-sources'
+            , 'build/generated/source/proto/main/grpc'
+            , 'build/generated/source/proto/main/java']
+    }
 }
 
 dependencies {
-
-    implementation "com.google.guava:guava:$guavaVersion"
-    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
-
-    testImplementation "junit:junit:${junitVersion}"
+    api project(':common:common-rpc')
+    implementation libs.guava
+    implementation libs.slf4j.api
 }
 
+protobuf {
+    protoc { artifact = libs.protobuf.protoc.get().toString() }
+    plugins {
+        grpc { artifact = libs.grpc.protocGenGrpcJava.get().toString() }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc { option('@generated=omit') } }
+    }
+}
+
+compileJava.dependsOn generateProto

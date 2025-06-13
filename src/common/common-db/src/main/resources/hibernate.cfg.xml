@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <!-- Connection parameters should be configured in hibernate.properties
+             and included in classpath -->
+        <!--
+            hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+            hibernate.connection.driver_class=org.postgresql.Driver
+            hibernate.connection.url=jdbc:postgresql://localhost:5432/serverconf
+            hibernate.connection.username=serverconf
+            hibernate.connection.password=serverconf
+        -->
+        <!--
+            <property name="dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+            <property name="connection.driver_class">org.postgresql.Driver</property>
+            <property name="connection.username">serverconf</property>
+            <property name="connection.password">serverconf</property>
+            <property name="connection.url">jdbc:postgresql://localhost:5432/serverconf</property>
+        -->
+
+        <!-- property name="connection.pool_size">1</property-->
+        <property name="connection.provider_class">org.hibernate.hikaricp.internal.HikariCPConnectionProvider</property>
+
+        <!-- Enable Hibernate's automatic session context management -->
+        <property name="current_session_context_class">thread</property>
+
+        <!-- Echo all executed SQL to stdout -->
+        <property name="show_sql">false</property>
+
+        <!-- hikariCP config -->
+        <property name="hikari.maximumPoolSize">10</property>
+        <property name="hikari.dataSource.sslmode">allow</property>
+
+        <!--TODO Migrate to newer strategies -->
+        <property name="hibernate.id.db_structure_naming_strategy">legacy</property>
+    </session-factory>
+</hibernate-configuration>

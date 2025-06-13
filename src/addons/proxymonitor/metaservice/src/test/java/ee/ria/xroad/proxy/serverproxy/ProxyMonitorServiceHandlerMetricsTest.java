@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -36,6 +36,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
@@ -48,6 +49,12 @@ import ee.ria.xroad.proxymonitor.message.MetricType;
 import ee.ria.xroad.proxymonitor.message.StringMetricType;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.http.client.HttpClient;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -55,14 +62,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.ExpectedException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -90,13 +89,13 @@ public class ProxyMonitorServiceHandlerMetricsTest {
 
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
-    private static final ClientId DEFAULT_OWNER_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+    private static final ClientId.Conf DEFAULT_OWNER_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT");
 
-    private static final SecurityServerId DEFAULT_OWNER_SERVER =
-            SecurityServerId.create(DEFAULT_OWNER_CLIENT, "ownerServer");
+    private static final SecurityServerId.Conf DEFAULT_OWNER_SERVER =
+            SecurityServerId.Conf.create(DEFAULT_OWNER_CLIENT, "ownerServer");
 
-    private static final ServiceId MONITOR_SERVICE_ID = ServiceId.create(DEFAULT_OWNER_CLIENT,
+    private static final ServiceId.Conf MONITOR_SERVICE_ID = ServiceId.Conf.create(DEFAULT_OWNER_CLIENT,
             ProxyMonitorServiceHandlerImpl.SERVICE_CODE);
 
     private static Unmarshaller unmarshaller;
@@ -118,7 +117,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     @Rule
     public final RestoreMonitorClientAfterTest monitorClientRestoreRule = new RestoreMonitorClientAfterTest();
 
-    private HttpServletRequest mockRequest;
+    private RequestWrapper mockRequest;
     private ProxyMessage mockProxyMessage;
 
     /**
@@ -127,7 +126,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     @BeforeClass
     public static void initCommon() throws JAXBException, SOAPException {
         unmarshaller = JAXBContext.newInstance(ObjectFactory.class, SoapHeader.class,
-                GetSecurityServerMetricsResponse.class)
+                        GetSecurityServerMetricsResponse.class)
                 .createUnmarshaller();
         messageFactory = MessageFactory.newInstance();
     }
@@ -147,12 +146,12 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         KeyConf.reload(new TestSuiteKeyConf());
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
-            public SecurityServerId getIdentifier() {
+            public SecurityServerId.Conf getIdentifier() {
                 return DEFAULT_OWNER_SERVER;
             }
         });
 
-        mockRequest = mock(HttpServletRequest.class);
+        mockRequest = mock(RequestWrapper.class);
         mockProxyMessage = mock(ProxyMessage.class);
 
         when(mockProxyMessage.getSoapContentType()).thenReturn(MimeTypes.TEXT_XML_UTF8);
@@ -220,13 +219,13 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         assertThat("Missing the expected metrics set",
                 responseMetrics, hasItem(instanceOf(MetricSetType.class)));
 
-        final MetricSetType responseDataMetrics = (MetricSetType)responseMetrics.stream() // we just asserted this..
+        final MetricSetType responseDataMetrics = (MetricSetType) responseMetrics.stream() // we just asserted this..
                 .filter(m -> m instanceof MetricSetType).findFirst().orElseThrow(IllegalStateException::new);
 
         assertThat(responseDataMetrics.getName(), is(expectedMetricsSetName));
         assertThat(responseDataMetrics.getMetrics().size(), is(1));
 
-        final StringMetricType responseMetric = (StringMetricType)responseDataMetrics.getMetrics().get(0);
+        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
         assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
     }
@@ -305,13 +304,13 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         assertThat("Missing the expected metrics set",
                 responseMetrics, hasItem(instanceOf(MetricSetType.class)));
 
-        final MetricSetType responseDataMetrics = (MetricSetType)responseMetrics.stream() // we just asserted this..
+        final MetricSetType responseDataMetrics = (MetricSetType) responseMetrics.stream() // we just asserted this..
                 .filter(m -> m instanceof MetricSetType).findFirst().orElseThrow(IllegalStateException::new);
 
         assertThat(responseDataMetrics.getName(), is(expectedMetricsSetName));
         assertThat(responseDataMetrics.getMetrics().size(), is(1));
 
-        final StringMetricType responseMetric = (StringMetricType)responseDataMetrics.getMetrics().get(0);
+        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
         assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
     }

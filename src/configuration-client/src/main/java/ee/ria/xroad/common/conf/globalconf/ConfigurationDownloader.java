@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,6 +27,7 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +36,7 @@ import org.bouncycastle.operator.DigestCalculator;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -42,17 +44,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
+import static ee.ria.xroad.common.SystemProperties.MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
 import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -61,7 +63,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
 /**
  * Downloads configuration directory from a configuration location defined
  * in the configuration anchor.
- *
+ * <p>
  * When there is only one configuration location in the configuration anchor, it
  * is used. If there is more than one configuration location, then, for
  * high-availability concerns, list of configuration locations is shuffled and
@@ -73,13 +75,23 @@ import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
 class ConfigurationDownloader {
 
     public static final int READ_TIMEOUT = 30000;
-
     protected final FileNameProvider fileNameProvider;
+    private final Map<String, ConfigurationLocation> successfulLocations = new HashMap<>();
+    private final SharedParametersConfigurationLocations sharedParametersConfigurationLocations;
 
-    private final Map<ConfigurationSource, ConfigurationLocation> lastSuccessfulLocation = new HashMap<>();
+    @Getter
+    private final Integer configurationVersion;
+
+    ConfigurationDownloader(String globalConfigurationDir, int configurationVersion) {
+        fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
+        this.sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(fileNameProvider);
+        this.configurationVersion = configurationVersion;
+    }
 
     ConfigurationDownloader(String globalConfigurationDir) {
         fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
+        this.sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(fileNameProvider);
+        this.configurationVersion = null;
     }
 
     ConfigurationParser getParser() {
@@ -95,47 +107,61 @@ class ConfigurationDownloader {
      * the downloaded files.
      */
     DownloadResult download(ConfigurationSource source, String... contentIdentifiers) {
-        DownloadResult result = new DownloadResult();
+        log.debug("download with contentIdentifiers: {}", (Object) contentIdentifiers);
 
-        for (ConfigurationLocation location : getLocations(source)) {
+        List<ConfigurationLocation> sharedParameterLocations = sharedParametersConfigurationLocations.get(source);
+
+        List<ConfigurationLocation> locations = new ArrayList<>();
+        if (!sharedParameterLocations.isEmpty()) {
+            locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sharedParameterLocations));
+            log.debug("sharedParameterLocations.size = {}", sharedParameterLocations.size());
+        }
+
+        locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(source.getLocations()));
+
+        Optional<String> prevCachedKey = findLocationWithPreviousSuccess(locations)
+                .map(locationWithPreviousSuccess -> {
+                    locations.add(0, successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
+                    log.debug("Previously cached key: " + locationWithPreviousSuccess.getDownloadURL());
+                    return locationWithPreviousSuccess.getDownloadURL();
+                });
+
+        return downloadResult(prevCachedKey.orElse(null), locations, contentIdentifiers);
+    }
+
+    private DownloadResult downloadResult(String prevCachedKey, List<ConfigurationLocation> locations, String... contentIdentifiers) {
+        DownloadResult result = new DownloadResult();
+        for (ConfigurationLocation location : locations) {
+            String cacheKey = prevCachedKey != null ? prevCachedKey : location.getDownloadURL();
+
             try {
+                location = toVersionedLocation(location);
                 Configuration config = download(location, contentIdentifiers);
-                rememberLastSuccessfulLocation(location);
+                rememberLastSuccessfulLocation(cacheKey, location);
                 return result.success(config);
             } catch (Exception e) {
+                log.warn("Unable to download Global Configuration. Because " + e);
+                successfulLocations.remove(cacheKey);
                 result.addFailure(location, e);
             }
         }
-
         return result.failure();
     }
 
-    private void rememberLastSuccessfulLocation(ConfigurationLocation location) {
-        log.trace("rememberLastSuccessfulLocation source={} location={}", location.getSource(), location);
-        lastSuccessfulLocation.put(location.getSource(), location);
-    }
-
-    private List<ConfigurationLocation> getLocations(ConfigurationSource source) {
-        List<ConfigurationLocation> result = new ArrayList<>();
-
-        preferLastSuccessLocation(source, result);
-
-        List<ConfigurationLocation> randomized = new ArrayList<>(source.getLocations());
-        Collections.shuffle(randomized);
-        result.addAll(randomized);
-
-        result.removeIf(Objects::isNull);
-
-        return result;
-    }
-
-    private void preferLastSuccessLocation(ConfigurationSource source, List<ConfigurationLocation> result) {
-        if (!lastSuccessfulLocation.isEmpty()) {
-            log.trace("preferLastSuccessLocation source={} location={}", source, lastSuccessfulLocation.get(source));
-            result.add(lastSuccessfulLocation.get(source));
-        } else {
-            log.trace("preferLastSuccessLocation lastSuccessfulLocation is empty");
+    private Optional<ConfigurationLocation> findLocationWithPreviousSuccess(List<ConfigurationLocation> locations) {
+        for (ConfigurationLocation location : locations) {
+            ConfigurationLocation successfulLocation = successfulLocations.get(location.getDownloadURL());
+            if (successfulLocation != null) {
+                log.trace("Found location={} which corresponds to previously successful location={}", location, successfulLocation);
+                return Optional.of(location);
+            }
         }
+        return Optional.empty();
+    }
+
+    private void rememberLastSuccessfulLocation(String cacheKey, ConfigurationLocation location) {
+        log.trace("rememberLastSuccessfulLocation cache key = {} location = {}", cacheKey, location);
+        successfulLocations.put(cacheKey, location);
     }
 
     Configuration download(ConfigurationLocation location, String[] contentIdentifiers) throws Exception {
@@ -167,13 +193,16 @@ class ConfigurationDownloader {
         List<DownloadedContent> result = new ArrayList<>();
         ConfigurationLocation location = configuration.getLocation();
 
+        var contentHandler = ContentHandler.forVersion(configuration.getVersion());
+
         for (ConfigurationFile file : configuration.getFiles()) {
             Path contentFileName = fileNameProvider.getFileName(file);
             if (shouldDownload(file, contentFileName)) {
                 byte[] content = downloadContent(location, file);
 
                 verifyContent(content, file);
-                handleContent(content, file);
+                validateContent(file);
+                contentHandler.handleContent(content, file);
 
                 result.add(new DownloadedContent(file, content));
             } else {
@@ -260,6 +289,20 @@ class ConfigurationDownloader {
         return true;
     }
 
+    private LocationVersionResolver locationVersionResolver(ConfigurationLocation location) {
+        if (configurationVersion == null) {
+            return LocationVersionResolver.range(location,
+                    MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION,
+                    CURRENT_GLOBAL_CONFIGURATION_VERSION);
+        } else {
+            return LocationVersionResolver.fixed(location, configurationVersion);
+        }
+    }
+
+    private ConfigurationLocation toVersionedLocation(ConfigurationLocation location) throws Exception {
+        return this.locationVersionResolver(location).toVersionedLocation();
+    }
+
     byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) throws Exception {
         URLConnection connection = getDownloadURLConnection(getDownloadURL(location, file));
         log.info("Downloading content from {}", connection.getURL());
@@ -286,29 +329,6 @@ class ConfigurationDownloader {
         //make possible with current structure to be overridden and validations called
     }
 
-    void handleContent(byte[] content, ConfigurationFile file) throws Exception {
-        switch (file.getContentIdentifier()) {
-            case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
-                PrivateParametersV2 privateParameters = new PrivateParametersV2(content);
-                handlePrivateParameters(privateParameters, file);
-                break;
-            case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
-                SharedParametersV2 sharedParameters = new SharedParametersV2(content);
-                handleSharedParameters(sharedParameters, file);
-                break;
-            default:
-                break;
-        }
-    }
-
-    void handlePrivateParameters(PrivateParametersV2 privateParameters, ConfigurationFile file) {
-        verifyInstanceIdentifier(privateParameters.getInstanceIdentifier(), file);
-    }
-
-    void handleSharedParameters(SharedParametersV2 sharedParameters, ConfigurationFile file) {
-        verifyInstanceIdentifier(sharedParameters.getInstanceIdentifier(), file);
-    }
-
     void persistContent(byte[] content, Path destination, ConfigurationFile file) throws Exception {
         log.info("Saving {} to {}", file, destination);
 
@@ -321,25 +341,13 @@ class ConfigurationDownloader {
         ConfigurationDirectory.saveMetadata(destination, file.getMetadata());
     }
 
-    void verifyInstanceIdentifier(String instanceIdentifier, ConfigurationFile file) {
-        if (StringUtils.isBlank(file.getInstanceIdentifier())) {
-            return;
-        }
-
-        if (!instanceIdentifier.equals(file.getInstanceIdentifier())) {
-            throw new CodedException(X_MALFORMED_GLOBALCONF,
-                    "Content part %s has invalid instance identifier "
-                            + "(expected %s, but was %s)", file,
-                            file.getInstanceIdentifier(), instanceIdentifier);
-        }
-    }
-
     public static URL getDownloadURL(ConfigurationLocation location, ConfigurationFile file) throws Exception {
         return new URI(location.getDownloadURL()).resolve(file.getContentLocation()).toURL();
     }
 
     public static URLConnection getDownloadURLConnection(URL url) throws IOException {
         URLConnection connection = url.openConnection();
+        ConfigurationHttpUrlConnectionConfig.apply((HttpURLConnection) connection);
         connection.setReadTimeout(READ_TIMEOUT);
         return connection;
     }

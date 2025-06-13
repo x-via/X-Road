@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.conf;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.LogUtils;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.slf4j.Logger;
@@ -126,7 +127,7 @@ public final class KeyConf {
      */
     public static OCSPResp getOcspResponse(String certHash)
             throws Exception {
-        if (LOG.isTraceEnabled()) LOG.trace("getOcspResponse({})", certHash);
+        if (LOG.isTraceEnabled()) LOG.trace("getOcspResponse({})", LogUtils.sanitize(certHash));
         return getInstance().getOcspResponse(certHash);
     }
 

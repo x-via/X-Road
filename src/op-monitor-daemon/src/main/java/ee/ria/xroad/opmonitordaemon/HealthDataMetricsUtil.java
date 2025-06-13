@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -76,7 +76,8 @@ final class HealthDataMetricsUtil {
     // requests only), for storing the service type of the services.
     private static final String SERVICE_TYPE_TEMPLATE = "serviceType(%s)";
 
-    private HealthDataMetricsUtil() { }
+    private HealthDataMetricsUtil() {
+    }
 
     /**
      * @param record an operational data record
@@ -85,7 +86,7 @@ final class HealthDataMetricsUtil {
      */
     static ServiceId getServiceId(OperationalDataRecord record) {
         try {
-            return ServiceId.create(record.getServiceXRoadInstance(),
+            return ServiceId.Conf.create(record.getServiceXRoadInstance(),
                     record.getServiceMemberClass(),
                     record.getServiceMemberCode(),
                     record.getServiceSubsystemCode(), record.getServiceCode(),
@@ -175,8 +176,8 @@ final class HealthDataMetricsUtil {
      * Zabbix.
      */
     private static String formatParameterAndStatusKey(ServiceId serviceId,
-            String parameterKeyTemplate, boolean requestSucceeded,
-            boolean uppercase) {
+                                                      String parameterKeyTemplate, boolean requestSucceeded,
+                                                      boolean uppercase) {
         return String.format(parameterKeyTemplate,
                 requestSucceeded ? (uppercase ? "Successful" : "successful")
                         : (uppercase ? "Unsuccessful" : "unsuccessful"),
@@ -189,7 +190,7 @@ final class HealthDataMetricsUtil {
     }
 
     static String getLastRequestTimestampGaugeName(ServiceId serviceId,
-            boolean success) {
+                                                   boolean success) {
         return formatParameterAndStatusKey(serviceId,
                 LAST_REQUEST_TIMESTAMP_TEMPLATE, success, true);
     }
@@ -217,7 +218,7 @@ final class HealthDataMetricsUtil {
      * Zabbix.
      */
     static String formatParameterKey(ServiceId serviceId,
-            String parameterKeyTemplate) {
+                                     String parameterKeyTemplate) {
         return String.format(parameterKeyTemplate, escapeServiceId(serviceId));
     }
 
@@ -247,7 +248,7 @@ final class HealthDataMetricsUtil {
      * @return the found counter or null if it does not exist
      */
     static Counter findCounter(MetricRegistry registry,
-            String expectedCounterName) {
+                               String expectedCounterName) {
         SortedMap<String, Counter> counters = registry.getCounters(
                 (name, metric) -> name.matches(HealthDataMetricsUtil
                         .formatMetricMatchRegexp(expectedCounterName))
@@ -269,7 +270,7 @@ final class HealthDataMetricsUtil {
      * @return the found histogram or null if it does not exist
      */
     static Histogram findHistogram(MetricRegistry registry,
-            String expectedHistogramName) {
+                                   String expectedHistogramName) {
         SortedMap<String, Histogram> histograms = registry.getHistograms(
                 (name, metric) -> name.matches(HealthDataMetricsUtil
                         .formatMetricMatchRegexp(expectedHistogramName))

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
-import ee.ria.xroad.common.util.SystemMetrics;
+import ee.ria.xroad.proxy.util.SystemMetrics;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.io.EndPoint;
@@ -63,19 +63,20 @@ public class AntiDosConnector extends ServerConnector {
     private final Semaphore semaphore = new Semaphore(configuration.getMaxParallelConnections());
 
     private final AntiDosConnectionManager<SocketChannelWrapperImpl> manager =
-            new AntiDosConnectionManager<SocketChannelWrapperImpl>(configuration) {
-        @Override
-        void closeConnection(SocketChannelWrapperImpl sock) throws IOException {
-            try {
-                super.closeConnection(sock);
-            } finally {
-                onConnectionClosed();
-            }
-        }
-    };
+            new AntiDosConnectionManager<>(configuration) {
+                @Override
+                void closeConnection(SocketChannelWrapperImpl sock) throws IOException {
+                    try {
+                        super.closeConnection(sock);
+                    } finally {
+                        onConnectionClosed();
+                    }
+                }
+            };
 
     /**
      * Construct a new AntiDos connector.
+     *
      * @param server the server
      * @param acceptorCount acceptor count
      */
@@ -85,11 +86,12 @@ public class AntiDosConnector extends ServerConnector {
 
     /**
      * Constructs a new SSL-enabled AntiDos connector.
+     *
      * @param server the server
      * @param acceptorCount acceptor count
      * @param sslContextFactory SSL context factory to use for configuration
      */
-    public AntiDosConnector(Server server, int acceptorCount, SslContextFactory sslContextFactory) {
+    public AntiDosConnector(Server server, int acceptorCount, SslContextFactory.Server sslContextFactory) {
         super(server, acceptorCount, -1, sslContextFactory);
     }
 
@@ -140,7 +142,7 @@ public class AntiDosConnector extends ServerConnector {
         };
     }
 
-    private class QueueManager implements Runnable {
+    private final class QueueManager implements Runnable {
         @Override
         public void run() {
             try {

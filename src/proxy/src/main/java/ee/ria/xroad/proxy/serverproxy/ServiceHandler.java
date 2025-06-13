@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,27 +27,29 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
 import org.apache.http.client.HttpClient;
-
-import javax.servlet.http.HttpServletRequest;
 
 import java.io.InputStream;
 
 interface ServiceHandler {
 
     boolean shouldVerifyAccess();
+
     boolean shouldVerifySignature();
+
     boolean shouldLogSignature();
 
     boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
 
-    void startHandling(HttpServletRequest servletRequest,
-            ProxyMessage requestMessage, HttpClient opMonitorClient,
-            OpMonitoringData opMonitoringData) throws Exception;
+    void startHandling(RequestWrapper request, ProxyMessage requestMessage,
+                       HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception;
+
     void finishHandling() throws Exception;
 
     String getResponseContentType();
+
     InputStream getResponseContent() throws Exception;
 }

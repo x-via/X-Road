@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,7 +30,6 @@ import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +49,7 @@ import java.util.List;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CertHashBasedOcspResponderClient.getOcspResponsesFromServer;
+import static ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient.getOcspResponsesFromServer;
 
 /**
  * This class is responsible for verifying the server proxy SSL certificate.
@@ -74,10 +73,10 @@ public final class AuthTrustVerifier {
     }
 
     static void verify(HttpContext context, SSLSession sslSession,
-            URI selectedAddress) {
+                       URI selectedAddress) {
         log.debug("verify()");
 
-        ServiceId service = (ServiceId)context.getAttribute(ID_PROVIDERNAME);
+        ServiceId service = (ServiceId) context.getAttribute(ID_PROVIDERNAME);
         if (service == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Could not get provider name from context");
@@ -97,16 +96,12 @@ public final class AuthTrustVerifier {
     }
 
     private static void verifyAuthCert(ClientId serviceProvider,
-            X509Certificate[] certs, URI address) throws Exception {
+                                       X509Certificate[] certs, URI address) throws Exception {
         CertChain chain;
         List<OCSPResp> ocspResponses;
         try {
-            List<X509Certificate> additionalCerts =
-                    Arrays.asList(
-                            (X509Certificate[])ArrayUtils.subarray(certs, 1,
-                                    certs.length));
-            chain = CertChain.create(serviceProvider.getXRoadInstance(),
-                    certs[0], additionalCerts);
+            List<X509Certificate> additionalCerts = Arrays.asList(ArrayUtils.subarray(certs, 1, certs.length));
+            chain = CertChain.create(serviceProvider.getXRoadInstance(), certs[0], additionalCerts);
             ocspResponses = getOcspResponses(
                     chain.getAllCertsWithoutTrustedRoot(), address.getHost());
         } catch (CodedException e) {
@@ -164,29 +159,26 @@ public final class AuthTrustVerifier {
     /**
      * Sends the GET request with all cert hashes which need OCSP responses.
      */
-    private static List<OCSPResp> getAndCacheOcspResponses(
-            List<X509Certificate> hashes,
-            String address) throws Exception {
+    private static List<OCSPResp> getAndCacheOcspResponses(List<X509Certificate> certs, String address) throws Exception {
         List<OCSPResp> receivedResponses;
         try {
             log.trace("get ocsp responses from server {}", address);
-            receivedResponses = getOcspResponsesFromServer(address,
-                    CertUtils.getCertHashes(hashes));
+            receivedResponses = getOcspResponsesFromServer(address, certs);
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
 
-        // Did we get OCSP response for each cert hash?
-        if (receivedResponses.size() != hashes.size()) {
+        // Did we get OCSP response for each cert?
+        if (receivedResponses.size() != certs.size()) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Could not get all OCSP responses from server "
                             + "(expected %s, but got %s)",
-                    hashes.size(), receivedResponses.size());
+                    certs.size(), receivedResponses.size());
         }
 
         // Cache the responses locally
         log.trace("got ocsp responses, setting them to key conf");
-        KeyConf.setOcspResponses(hashes, receivedResponses);
+        KeyConf.setOcspResponses(certs, receivedResponses);
 
         return receivedResponses;
     }
@@ -198,11 +190,9 @@ public final class AuthTrustVerifier {
 
         try {
             // Note: assuming X509-based auth
-            return (X509Certificate[])session.getPeerCertificates();
+            return (X509Certificate[]) session.getPeerCertificates();
         } catch (SSLPeerUnverifiedException e) {
-            log.error("Error while getting peer certificates", e);
-            throw new CodedException(X_SSL_AUTH_FAILED, e,
-                    "Service provider did not send correct authentication certificate");
+            throw new CodedException(X_SSL_AUTH_FAILED, e, "Service provider did not provide TLS certificate");
         }
     }
 

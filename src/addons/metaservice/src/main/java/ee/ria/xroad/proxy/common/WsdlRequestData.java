@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,14 +29,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapHeader;
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * WSDL request data that is marshalled to and from the message body.
@@ -60,7 +59,7 @@ public class WsdlRequestData {
      * @param client the client
      * @return the service identifier for a specified client
      */
-    public ServiceId toServiceId(ClientId client) {
-        return ServiceId.create(client, serviceCode, serviceVersion);
+    public ServiceId.Conf toServiceId(ClientId client) {
+        return ServiceId.Conf.create(client, serviceCode, serviceVersion);
     }
 }

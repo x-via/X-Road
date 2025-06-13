@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -83,7 +83,7 @@ public class HttpClientCreator {
         }
 
         public HttpClientCreatorException(String message, Throwable cause,
-                boolean enableSuppression, boolean writableStackTrace) {
+                                          boolean enableSuppression, boolean writableStackTrace) {
             super(message, cause, enableSuppression, writableStackTrace);
         }
     }

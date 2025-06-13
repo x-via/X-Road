@@ -1,13 +1,9 @@
-
-| ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| -------------------------: |
-
 # X-Road: Security Server Architecture <!-- omit in toc -->
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.13 
-03.05.2022
+Version: 1.17
+12.06.2024
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
@@ -15,28 +11,32 @@ Doc. ID: ARC-SS
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                                 | Author
- ---------- | ------- | ----------------------------------------------------------- | --------------------
- 09.07.2015 | 0.1     | Initial version                                             | Ilja Kromonov
- 08.09.2015 | 0.2     | Rearranged references, made some editorial changes          | Margus Freudenthal
- 09.09.2015 | 0.3     | Editorial changes, simplified deployment, technology matrix | Margus Freudenthal
- 15.09.2015 | 0.4     | Audit log                                                   | Kristo Heero
- 15.09.2015 | 0.5     | Message log updated                                         | Kristo Heero
- 16.09.2015 | 0.6     | Incorporated feedback from Vitali                           | Margus Freudenthal
- 17.09.2015 | 1.0     | Editorial changes made                                      | Imbi Nõgisto
- 21.10.2015 | 1.1     | SSCD and password store related information added           | Ilja Kromonov
- 16.12.2015 | 1.2     | Incorporated environmental monitoring                       | Ilkka Seppälä
- 19.12.2016 | 1.3     | Added operational monitoring                                | Kristo Heero
- 20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 19.01.2018 | 1.5     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
- 02.03.2018 | 1.6     | Moved terms and abbreviations to terms document, added terms reference and document links | Tatu Repo
- 17.04.2019 | 1.7     | Added X-Road Message Protocol for REST                      | Petteri Kivimäki
- 31.10.2019 | 1.8     | Added chapter 3 [process view](#3-process-view)             | Ilkka Seppälä
- 21.08.2020 | 1.9     | Update for RHEL 8                                           | Jarkko Hyöty
- 10.09.2020 | 1.10    | Updates for API based UI                                    | Janne Mattila
- 07.09.2021 | 1.11    | Update for encryption features                              | Ilkka Seppälä
- 24.11.2021 | 1.12    | Fixed broken links and duplicate heading                    | Raido Kaju
- 03.05.2022 | 1.13    | Update `xroad-addon-messagelog` process section             | Petteri Kivimäki
+| Date       | Version | Description                                                                                          | Author             |
+|------------|---------|------------------------------------------------------------------------------------------------------|--------------------|
+| 09.07.2015 | 0.1     | Initial version                                                                                      | Ilja Kromonov      |
+| 08.09.2015 | 0.2     | Rearranged references, made some editorial changes                                                   | Margus Freudenthal |
+| 09.09.2015 | 0.3     | Editorial changes, simplified deployment, technology matrix                                          | Margus Freudenthal |
+| 15.09.2015 | 0.4     | Audit log                                                                                            | Kristo Heero       |
+| 15.09.2015 | 0.5     | Message log updated                                                                                  | Kristo Heero       |
+| 16.09.2015 | 0.6     | Incorporated feedback from Vitali                                                                    | Margus Freudenthal |
+| 17.09.2015 | 1.0     | Editorial changes made                                                                               | Imbi Nõgisto       |
+| 21.10.2015 | 1.1     | SSCD and password store related information added                                                    | Ilja Kromonov      |
+| 16.12.2015 | 1.2     | Incorporated environmental monitoring                                                                | Ilkka Seppälä      |
+| 19.12.2016 | 1.3     | Added operational monitoring                                                                         | Kristo Heero       |
+| 20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder      |
+| 19.01.2018 | 1.5     | Matrix of technologies moved to ARC-TEC-file and chapters reordered                                  | Antti Luoma        |
+| 02.03.2018 | 1.6     | Moved terms and abbreviations to terms document, added terms reference and document links            | Tatu Repo          |
+| 17.04.2019 | 1.7     | Added X-Road Message Protocol for REST                                                               | Petteri Kivimäki   |
+| 31.10.2019 | 1.8     | Added chapter 3 [process view](#3-process-view)                                                      | Ilkka Seppälä      |
+| 21.08.2020 | 1.9     | Update for RHEL 8                                                                                    | Jarkko Hyöty       |
+| 10.09.2020 | 1.10    | Updates for API based UI                                                                             | Janne Mattila      |
+| 07.09.2021 | 1.11    | Update for encryption features                                                                       | Ilkka Seppälä      |
+| 24.11.2021 | 1.12    | Fixed broken links and duplicate heading                                                             | Raido Kaju         |
+| 03.05.2022 | 1.13    | Update `xroad-addon-messagelog` process section                                                      | Petteri Kivimäki   |
+| 01.06.2023 | 1.14    | Update references                                                                                    | Petteri Kivimäki   |
+| 20.06.2023 | 1.15    | Fixed Security Server Admin API OpenAPI specification link                                           | Madis Loitmaa      |
+| 03.10.2023 | 1.16    | Remove Akka references                                                                               | Ričardas Bučiūnas  |
+| 12.06.2024 | 1.17    | Add information about ACME support                                                                   | Petteri Kivimäki   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -159,37 +159,37 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] Cybernetica AS. X-Road Architecture. Document ID: [ARC-G](arc-g_x-road_arhitecture.md).
+1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] X-Road Architecture. Document ID: [ARC-G](arc-g_x-road_arhitecture.md).
 
-2. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
+2. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
 
 3. <a id="Ref_BATCH-TS" class="anchor"></a>\[BATCH-TS\] Freudenthal, Margus. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013.
 
-4. <a id="Ref_DM-SS" class="anchor"></a>\[DM-SS\] Cybernetica AS. X-Road: Security Server Configuration. Document ID: [DM-SS](../DataModels/dm-ss_x-road_security_server_configuration_data_model.md).
+4. <a id="Ref_DM-SS" class="anchor"></a>\[DM-SS\] X-Road: Security Server Configuration. Document ID: [DM-SS](../DataModels/dm-ss_x-road_security_server_configuration_data_model.md).
 
-5. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events.md).
+5. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events.md).
 
 6. <a id="Ref_OCSP" class="anchor"></a>\[OCSP\] X.509 Internet Public Key Infrastructure Online Certificate Status Protocol - OCSP. Internet Engineering Task Force, RFC 6960, 2013.
 
 7. <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] Cryptographic Token Interface Standard. RSA Laboratories, PKCS\#11.
 
-8. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] Cybernetica AS. X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
+8. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
-9. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] Cybernetica AS. X-Road: Management Services Protocol. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
+9. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Management Services Protocol. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
 
-10. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
+10. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
-11. <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] Cybernetica AS. X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol.md).
+11. <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol.md).
 
-12. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] Cybernetica AS. X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
+12. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
 
-13. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).
+13. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).
 
 14. <a id="Ref_TSP" class="anchor"></a>\[TSP\] Internet X.509 Public Key Infrastructure Time-Stamp Protocol (TSP). Intenet Engineering Task Force, RFC 3161, 2001.
 
-15. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] Cybernetica AS. X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
+15. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
 
-16. <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] Cybernetica AS. X-Road: Member Communication Use Case Model. Document ID: [UC-MESS](../UseCases/uc-mess_x-road_member_communication_use_case_model.md).
+16. <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] X-Road: Member Communication Use Case Model. Document ID: [UC-MESS](../UseCases/uc-mess_x-road_member_communication_use_case_model.md).
 
 17. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
 
@@ -209,7 +209,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 25. <a id="Ref_OPENAPI" class="anchor"></a>\[OPENAPI\] OpenAPI Specification 3.0.0. 26th July 2017.
 
-26. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml>.
+26. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/security-server/openapi-model/src/main/resources/META-INF/openapi-definition.yaml>.
+
+27. <a id="Ref_ACME" class="anchor"></a>\[ACME\] RFC8555: Automatic Certificate Management Environment (ACME), <https://datatracker.ietf.org/doc/html/rfc8555>
 
 ## 2 Component View
 
@@ -297,6 +299,7 @@ These endpoints are used by the user interface frontend, and can be used by stan
 The management REST API is packaged in an executable Spring Boot\[[2](#Ref_2)\] *jar* archive.
 This Spring Boot application starts an embedded Tomcat\[[3](#Ref_3)\] servlet engine, which also serves the resources for the user interface frontend.
 Embedded Tomcat listens on a fixed port that is configured in internal configuration files.
+In addition, the application listens to incoming \[[ACME](#Ref_ACME)\] challenge requests from the ACME server on port 80.
 
 Management REST API endpoints are documented using an OpenAPI 3 definition: \[[REST_UI-API](#Ref_REST_UI-API)\].
 For more information on OpenAPI 3, see \[[OPENAPI](#Ref_OPENAPI)\].
@@ -334,13 +337,13 @@ The SSCD needs to be a PKCS \#11 (see \[[PKCS11](#Ref_PKCS11)\]) compliant hardw
 
 ### 2.13 Environmental Monitoring Service
 
-Provides method that can be used by X-Road participants to get environmental data of the security server. It requests the data from the local monitoring service via Akka interface and translates it to a SOAP XML response.
+Provides methods that can be used by X-Road participants to get environmental data of the security server. It requests the data from the local monitoring service via gRPC interface and translates it to a SOAP XML response.
 
 The component is a proxy addon.
 
 ### 2.14 Monitor
 
-Monitor component collects environmental monitoring information such as running processes, available disk space, installed packages etc. The monitoring data is published via Akka and (optional) JMX interfaces.
+Monitor component collects environmental monitoring information such as running processes, available disk space, installed packages etc. The monitoring data is published via gRPC and (optional) JMX interfaces.
 
 The component is a separate daemon process.
 
@@ -355,7 +358,7 @@ Figure 2. Security server process diagram
 
 #### 3.1.1 Role and responsibilities
 
-Xroad-proxy-ui-api provides the Security Server user interface. It also provides the REST API that can be used for management operations.
+Xroad-proxy-ui-api provides the Security Server user interface. It also provides the REST API that can be used for management operations. In addition, it provides the \[[ACME](#Ref_ACME)\] interface for receiving incoming ACME challenge requests from the ACME server.
 
 #### 3.1.2 Encapsulated data
 
@@ -374,6 +377,12 @@ Xroad-proxy-ui-api accepts https traffic to interface A in \[[Figure 2](#Ref_Sec
 Interface A handles both requests to serve content for the UI and requests for REST API calls.
 Interface A is directly exposed to outside world.
 
+Xroad-proxy-ui-api accepts http traffic to interface E in \[[Figure 2](#Ref_Security_Server_process_diagram)\].
+Interface E handles incoming ACME challenge requests from the Certificate Authority's ACME server (see \[[ACME](#Ref_ACME)\]).
+Interface E is directly exposed to outside world.
+
+Xroad-proxy-ui-api communicates with certificate authority's ACME interface R (see \[[ACME](#Ref_ACME)\]).
+
 Xroad-proxy-ui-api communicates with Central Server's management services interface M (see \[[PR-MSERV](#Ref_PR-MSERV)\]).
 
 Global configuration is downloaded from Central Server (or Configuration Proxy in some cases) utilizing xroad-confclient and stored on disk.
@@ -390,13 +399,15 @@ Finally Xroad-proxy-ui-api reads/writes data to postgresql interface D.
 
 #### 3.1.4 Input/output ports
 
-Xroad-proxy-ui-api has a listening port for incoming https traffic. The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL](#Ref_IG-SS-RHEL)\].
+Xroad-proxy-ui-api has listening ports for incoming https traffic. The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL](#Ref_IG-SS-RHEL)\].
 
 Xroad-proxy-ui-api accesses xroad-confclient's admin port to command it to download global configuration. The output port is internal and specified in xroad-confclient's source code.
 
 Xroad-proxy-ui-api accesses xroad-signer's admin and signer protocol ports. Both ports are internal and must be looked up in the xroad-signer's source code.
 
 Xroad-proxy-ui-api accesses postgresql using the port specified in /etc/xroad/db.properties.
+
+Xroad-proxy-ui-api accesses certificate authority's ACME interface R (see \[[ACME](#Ref_ACME)\]) to manage authentication and sign certificates. The output port is defined on the Central Server and distributed to the Security Servers using global configuration.
 
 #### 3.1.5 Persistent data
 
@@ -423,7 +434,7 @@ Xroad-signer encapsulates keyconf, which tracks the configuration related to tok
 
 #### 3.2.3 Messaging
 
-Xroad-signer fetches information from certificate authority's OCSP responder.
+Xroad-signer fetches information from certificate authority's OCSP responder using interface U.
 
 Xroad-signer offers interface S in \[[Figure 2](#Ref_Security_Server_process_diagram)\] for signing requests. It is used by xroad-proxy-ui-api and xroad-proxy. Additionally xroad-proxy is accessing directly the keyconf.xml encapsulated by xroad-signer.
 

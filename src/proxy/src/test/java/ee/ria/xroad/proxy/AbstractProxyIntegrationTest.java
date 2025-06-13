@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,24 +28,13 @@ package ee.ria.xroad.proxy;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.common.util.StartStop;
-import ee.ria.xroad.proxy.addon.AddOn;
-import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.conf.KeyConf;
-import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
-import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestKeyConf;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
-import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValueFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -54,34 +43,33 @@ import org.junit.experimental.categories.Category;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.GenericApplicationContext;
 
 import java.net.ServerSocket;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
-import java.util.ServiceLoader;
 import java.util.Set;
+
+import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
+import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
 
 /**
  * Base class for proxy integration tests
- * Starts and stops an test proxy instance and a service simulator.
+ * Starts and stops the test proxy instance and a service simulator.
  */
 @Category(IntegrationTest.class)
 public abstract class AbstractProxyIntegrationTest {
-
     private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
 
-    private static ActorSystem actorSystem;
-    private static JobManager jobManager;
-    private static ClientProxy clientProxy;
-    private static ServerProxy serverProxy;
-    private static List<StartStop> services;
+    private static GenericApplicationContext applicationContext;
+
     protected static int proxyClientPort = getFreePort();
     protected static int servicePort = getFreePort();
     protected static TestService service;
 
-    private static TestServerConf testServerConf = new TestServerConf(servicePort);
-    private static TestGlobalConf testGlobalConf = new TestGlobalConf();
+    private static final TestServerConf TEST_SERVER_CONF = new TestServerConf(servicePort);
+    private static final TestGlobalConf TEST_GLOBAL_CONF = new TestGlobalConf();
 
     @Rule
     public final ExternalResource serviceResource = new ExternalResource() {
@@ -106,70 +94,72 @@ public abstract class AbstractProxyIntegrationTest {
         }
     };
 
-    @BeforeClass
-    public static void setup() throws Exception {
-        System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
-        System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
-        System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, String.valueOf(proxyClientPort));
-        System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, String.valueOf(getFreePort()));
+    static class TestProxyMain extends ProxyMain {
+        @Override
+        protected void loadSystemProperties() {
+            System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
+            System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
+            System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, String.valueOf(proxyClientPort));
+            System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, String.valueOf(getFreePort()));
 
-        final String serverPort = String.valueOf(getFreePort());
-        System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, serverPort);
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
+            final String serverPort = String.valueOf(getFreePort());
+            System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, serverPort);
+            System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
 
-        System.setProperty(SystemProperties.OCSP_RESPONDER_PORT, String.valueOf(getFreePort()));
-        System.setProperty(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
-        System.setProperty(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
-        System.setProperty(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
+            System.setProperty(SystemProperties.OCSP_RESPONDER_PORT, String.valueOf(getFreePort()));
+            System.setProperty(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
+            System.setProperty(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
+            System.setProperty(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
+            System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
 
-        KeyConf.reload(new TestKeyConf());
-        ServerConf.reload(testServerConf);
-        GlobalConf.reload(testGlobalConf);
+            System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
+            System.setProperty(OCSP_RESPONDER_LISTEN_ADDRESS, "127.0.0.1");
 
-        System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
-        System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
+            System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
+            System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
-        jobManager = new JobManager();
-        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
-                .withValue("akka.remote.artery.canonical.port", ConfigValueFactory.fromAnyRef(getFreePort())));
+            System.setProperty(SystemProperties.PROXY_HEALTH_CHECK_PORT, "5558");
+            System.setProperty(SystemProperties.SERVER_CONF_CACHE_PERIOD, "0");
 
-        MessageLog.init(actorSystem, jobManager);
-        OpMonitoring.init(actorSystem);
-        for (AddOn addon : ServiceLoader.load(AddOn.class)) {
-            addon.init(actorSystem);
+            System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
+            super.loadSystemProperties();
         }
 
-        clientProxy = new ClientProxy();
-        serverProxy = new ServerProxy("127.0.0.1");
-        service = new TestService(servicePort);
-
-        services = Arrays.asList(
-                clientProxy,
-                serverProxy,
-                new CertHashBasedOcspResponder("127.0.0.1"),
-                service
-        );
-
-        for (StartStop svc : services) {
-            svc.start();
+        @Override
+        protected void loadGlobalConf() {
+            KeyConf.reload(new TestKeyConf());
+            ServerConf.reload(TEST_SERVER_CONF);
+            GlobalConf.reload(TEST_GLOBAL_CONF);
         }
     }
 
-    @AfterClass
-    public static void teardown() throws Exception {
-        for (StartStop svc : services) {
-            svc.stop();
-            svc.join();
+    @Configuration
+    static class TestProxySpringConfig {
+
+        @Bean(initMethod = "start", destroyMethod = "stop")
+        TestService testService() {
+            service = new TestService(servicePort);
+            return service;
         }
-        actorSystem.terminate();
+    }
+
+    @BeforeClass
+    public static void setup() throws Exception {
+        applicationContext = new TestProxyMain().createApplicationContext(TestProxySpringConfig.class);
+    }
+
+    @AfterClass
+    public static void teardown() {
+        if (applicationContext != null) {
+            applicationContext.close();
+        }
         RESERVED_PORTS.clear();
     }
 
     @After
     public void after() {
-        ServerConf.reload(testServerConf);
-        GlobalConf.reload(testGlobalConf);
+        ServerConf.reload(TEST_SERVER_CONF);
+        GlobalConf.reload(TEST_GLOBAL_CONF);
     }
 
     static int getFreePort() {

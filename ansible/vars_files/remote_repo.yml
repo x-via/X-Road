@@ -1,14 +1,14 @@
 ---
 package_source: "remote"
 
-xroad_repo_baseurl: "https://artifactory.niis.org"
-xroad_repo_key:  "https://artifactory.niis.org/api/gpg/key/public"
+xroad_repo_baseurl: "https://rw3tecnologia.jfrog.io/artifactory"
+xroad_repo_key:  "https://rw3tecnologia.jfrog.io/artifactory/api/gpg/key/public"
 
 ubuntu_apt_key:  "{{xroad_repo_key}}"
-ubuntu_repo_url: "{{xroad_repo_baseurl}}/xroad-release-deb"
+ubuntu_repo_url: "{{xroad_repo_baseurl}}/xvia-debian-local"
 ubuntu_apt_repo: "deb {{ubuntu_repo_url}} {{ansible_distribution_release}}-current main"
 
-rhel_repo_baseurl: "{{xroad_repo_baseurl}}/xroad-release-rpm/rhel/{{ansible_distribution_major_version}}/current"
+rhel_repo_baseurl: "{{xroad_repo_baseurl}}/xvia-release-rpm/rhel/{{ansible_distribution_major_version}}/current"
 rhel_repo_gpgcheck: "yes"
 rhel_repo_gpgkey: "{{xroad_repo_key}}"
 rhel_repo_repogpgcheck: "yes"

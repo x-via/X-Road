@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -129,7 +129,7 @@ final class TestUtil {
 
     static void cleanUpDatabase() throws Exception {
         doInTransaction(session -> {
-            Query q = session.createSQLQuery(
+            Query q = session.createNativeQuery(
                     // Since we are using HSQLDB for tests, we can use
                     // special commands to completely wipe out the database
                     "TRUNCATE SCHEMA public AND COMMIT");
@@ -230,7 +230,7 @@ final class TestUtil {
     }
 
     @RequiredArgsConstructor
-    private static class StandardOutputReader extends Thread {
+    private static final class StandardOutputReader extends Thread {
         private final Process process;
 
         @Getter
@@ -248,7 +248,7 @@ final class TestUtil {
     }
 
     @RequiredArgsConstructor
-    private static class StandardErrorCollector extends Thread {
+    private static final class StandardErrorCollector extends Thread {
         private final Process process;
 
         @Getter

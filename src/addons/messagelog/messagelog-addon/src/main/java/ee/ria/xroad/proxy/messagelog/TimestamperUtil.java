@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -57,7 +57,7 @@ final class TimestamperUtil {
 
     @SuppressWarnings("unchecked")
     static TimeStampToken addSignerCertificate(TimeStampResponse tsResponse,
-            X509Certificate signerCertificate) throws Exception {
+                                               X509Certificate signerCertificate) throws Exception {
         CMSSignedData cms = tsResponse.getTimeStampToken().toCMSSignedData();
 
         List<X509CertificateHolder> collection = new ArrayList<>();

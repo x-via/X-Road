@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,20 +31,23 @@ import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import com.google.gson.stream.JsonWriter;
+import com.fasterxml.jackson.core.JsonGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -54,6 +57,9 @@ import java.util.Enumeration;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static ee.ria.xroad.common.util.JettyUtils.getTarget;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 
 /**
  * Handles client messages. This handler must be the last handler in the
@@ -75,9 +81,9 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) throws Exception {
+    MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
+                                                OpMonitoringData opMonitoringData) throws Exception {
+        final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
             return new ClientRestMessageProcessor(request, response, client,
@@ -101,21 +107,21 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    public void sendErrorResponse(HttpServletRequest request,
-                                  HttpServletResponse response,
+    public void sendErrorResponse(Request request,
+                                  Response response,
+                                  Callback callback,
                                   CodedException ex) throws IOException {
         if (ex.getFaultCode().startsWith("Server.")) {
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         } else {
             response.setStatus(HttpStatus.BAD_REQUEST_400);
         }
-        response.setCharacterEncoding(MimeUtils.UTF8);
-        response.setHeader("X-Road-Error", ex.getFaultCode());
+        response.getHeaders().put("X-Road-Error", ex.getFaultCode());
 
-        final String responseContentType = decideErrorResponseContentType(request.getHeaders("Accept"));
-        response.setContentType(responseContentType);
+        final String responseContentType = decideErrorResponseContentType(request.getHeaders().getValues("Accept"));
+        setContentType(response, responseContentType, MimeUtils.UTF8);
         if (XML_TYPES.contains(responseContentType)) {
-            try {
+            try (var responseOut = asOutputStream(response)) {
                 Document doc = XmlUtils.newDocumentBuilder(false).newDocument();
                 Element errorRootElement = doc.createElement("error");
                 doc.appendChild(errorRootElement);
@@ -128,18 +134,23 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 Element detailElement = doc.createElement("detail");
                 detailElement.appendChild(doc.createTextNode(ex.getFaultDetail()));
                 errorRootElement.appendChild(detailElement);
-                response.getOutputStream().write(XmlUtils.prettyPrintXml(doc, "UTF-8", 0).getBytes());
+                responseOut.write(XmlUtils.prettyPrintXml(doc, "UTF-8", 0).getBytes());
             } catch (Exception e) {
                 log.error("Unable to generate XML document");
+            } finally {
+                callback.failed(ex);
             }
         } else {
-            final JsonWriter writer = new JsonWriter(new PrintWriter(response.getOutputStream()));
-            writer.beginObject()
-                    .name("type").value(ex.getFaultCode())
-                    .name("message").value(ex.getFaultString())
-                    .name("detail").value(ex.getFaultDetail())
-                    .endObject()
-                    .close();
+            try (JsonGenerator jsonGenerator = JsonUtils.getObjectWriter()
+                    .getFactory().createGenerator(new PrintWriter(asOutputStream(response)))) {
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField("type", ex.getFaultCode());
+                jsonGenerator.writeStringField("message", ex.getFaultString());
+                jsonGenerator.writeStringField("detail", ex.getFaultDetail());
+                jsonGenerator.writeEndObject();
+            } finally {
+                callback.succeeded();
+            }
         }
     }
 
@@ -149,7 +160,7 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 .map(s -> s.split(";", 2)[0].trim().toLowerCase())
                 .filter(XML_TYPES::contains)
                 .findAny()
-                .map(orig -> mapTextToXml(orig))
+                .map(ClientRestMessageHandler::mapTextToXml)
                 .orElse(APPLICATION_JSON);
     }
 
